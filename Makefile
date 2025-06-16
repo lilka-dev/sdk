@@ -1,4 +1,4 @@
-IMAGE2CODE = ./sdk/tools/image2code/image2code.py
+IMAGE2CODE = ./tools/image2code/image2code.py
 CPPCHECK ?= cppcheck
 CLANG_FORMAT ?= $(shell command -v clang-format-17 2>/dev/null || echo clang-format)
 
@@ -11,10 +11,7 @@ guidelines:
 		. \
 		-not \( -name .ccls-cache -prune \) \
 		-not \( -name .pio -prune \) \
-		-not \( -name doomgeneric -prune \) \
 		-not \( -name bak -prune \) \
-		-not \( -name mJS -prune \) \
-		-not \( -name SimpleFTPServer -prune \) \
 		-not \( -name LodePNG -prune \) \
 		-iname *.h \
 		-o -iname *.cpp \
@@ -29,10 +26,7 @@ todo: ## Find all TODO, FIXME, XXX comments
 		. \
 		-not \( -name .ccls-cache -prune \) \
 		-not \( -name .pio -prune \) \
-		-not \( -name doomgeneric -prune \) \
 		-not \( -name bak -prune \) \
-		-not \( -name mJS -prune \) \
-		-not \( -name SimpleFTPServer -prune \) \
 		-not \( -name LodePNG -prune \) \
 		-iname *.h \
 		-o -iname *.cpp \
@@ -47,17 +41,11 @@ icons:
 	# Find all PNG images in firmware and sdk folders and convert them to .h
 	# Exclude splash screens
 	find \
-		firmware \
-		sdk \
+		lib \
 		-not \( -name .ccls-cache -prune \) \
 		-not \( -name .pio -prune \) \
-		-not \( -name doomgeneric -prune \) \
 		-not \( -name bak -prune \) \
-		-not \( -name mJS -prune \) \
-		-not \( -name SimpleFTPServer -prune \) \
 		-not \( -name LodePNG -prune \) \
-		-not \( -name *splash* -prune \) \
-		-not \( -name *weather* -prune \) \
 		-iname '*.png' \
 		-exec $(IMAGE2CODE) {} \;
 
@@ -79,10 +67,7 @@ clang-format: ## Run clang-format check
 		. \
 		-not \( -name .ccls-cache -prune \) \
 		-not \( -name .pio -prune \) \
-		-not \( -name doomgeneric -prune \) \
 		-not \( -name bak -prune \) \
-		-not \( -name mJS -prune \) \
-		-not \( -name SimpleFTPServer -prune \) \
 		-not \( -name LodePNG -prune \) \
 		-iname *.h \
 		-o -iname *.cpp \
@@ -93,7 +78,7 @@ clang-format: ## Run clang-format check
 
 .PHONY: cppcheck
 cppcheck: ## Run cppcheck check
-	$(CPPCHECK) . -i.ccls-cache -ipio -idoomgeneric -ibak -imJS -iSimpleFTPServer -iLodePNG \
+	$(CPPCHECK) . -i.ccls-cache -ipio -ibak -iLodePNG \
 		--enable=performance,style \
 		--suppress=knownPointerToBool \
 		--suppress=noCopyConstructor \

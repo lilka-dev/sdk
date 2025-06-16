@@ -20,7 +20,7 @@ jobs:
           path: |
             ~/.cache/pip
             ~/.platformio/.cache
-            ./sdk/lib/lilka/.pio
+            ./lib/lilka/.pio
           key: ${{ runner.os }}-lilka
       - uses: actions/setup-python@v4
         with:
@@ -29,7 +29,7 @@ jobs:
         run: pip install --upgrade platformio
 
       - name: Build PlatformIO Project
-        working-directory: ./sdk/lib/lilka
+        working-directory: ./lib/lilka
         run: |
           # So, why do we run this twice?
           # The reason is that we run prepare.py which deletes some unneeded (& breaking) sources from GFX library.
