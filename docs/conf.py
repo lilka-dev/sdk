@@ -72,6 +72,7 @@ intersphinx_mapping = {
     "lilka-uk": ("https://docs.lilka.dev/uk/latest/", None),
     "keira-uk": ("https://docs.lilka.dev/projects/keira/uk/latest/", None),
 }
+intersphinx_disabled_reftypes = ["*"]
 
 # -- Breathe configuration ---------------------------------------------------
 
