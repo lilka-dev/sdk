@@ -1,3 +1,5 @@
+.. _lilka-lib:
+
 :octicon:`code` Бібліотека ``lilka``
 ====================================
 
@@ -117,8 +119,16 @@
     colors
     build_flags
 
+.. toctree::
+    :caption: Посилання
+
+    Головна документація <https://docs.lilka.dev>
+    Документація KeiraOS <https://docs.lilka.dev/projects/keira/>
+    Документація SDK <https://docs.lilka.dev/projects/sdk/>
+
     GitHub (SDK) <https://github.com/lilka-dev/sdk>
     Discord <https://discord.gg/HU68TaKCu6>
+
 ..
 .. .. toctree::
 ..     :caption: Проєкти нашої спільноти
