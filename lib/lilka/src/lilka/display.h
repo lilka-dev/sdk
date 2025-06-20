@@ -229,7 +229,7 @@ public:
 /// #include <lilka.h>
 ///
 /// void setup() {
-///     lilka.begin();
+///     lilka::begin();
 /// }
 ///
 /// void loop() {
@@ -294,7 +294,7 @@ private:
 /// #include <lilka.h>
 ///
 /// void setup() {
-///     lilka.begin();
+///     lilka::begin();
 /// }
 ///
 /// void loop() {

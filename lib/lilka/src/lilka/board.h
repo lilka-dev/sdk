@@ -23,7 +23,7 @@ typedef enum {
 /// #include <lilka.h>
 ///
 /// void setup() {
-///     lilka.begin();
+///     lilka::begin();
 /// }
 ///
 /// void loop() {
