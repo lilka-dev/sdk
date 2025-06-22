@@ -1,0 +1,46 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2024, Andrew Dunai
+# This file is distributed under the same license as the SDK для Лілки
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: SDK для Лілки \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-06-22 13:51+0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.15.0\n"
+
+#: ../../display.rst:2
+msgid "``Display``: Дисплей"
+msgstr ""
+
+#: ../../display.rst:9
+msgid "Display"
+msgstr ""
+
+#: ../../display.rst:17
+msgid "Canvas"
+msgstr ""
+
+#: ../../display.rst:23
+msgid "GFX"
+msgstr ""
+
+#: ../../display.rst:29
+msgid "Image"
+msgstr ""
+
+#: ../../display.rst:35
+msgid "Transform"
+msgstr ""
+

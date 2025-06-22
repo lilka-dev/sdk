@@ -1,0 +1,88 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2024, Andrew Dunai
+# This file is distributed under the same license as the SDK для Лілки
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: SDK для Лілки \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-06-22 13:51+0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.15.0\n"
+
+#: ../../build_flags.rst:2
+msgid "Налаштування бібліотеки"
+msgstr ""
+
+#: ../../build_flags.rst:4
+msgid ""
+"Бібліотека ``lilka`` постачається з рядом вбудованих можливостей, які за "
+"замовчуванням увімкнені."
+msgstr ""
+
+#: ../../build_flags.rst:6
+msgid ""
+"Можливо, вам не подобаються деякі налаштування, які вибрані за "
+"замовчуванням."
+msgstr ""
+
+#: ../../build_flags.rst:8
+msgid ""
+"Наприклад, вас дратує звук, який видає Лілка при увімкненні. Або ж ви "
+"збираєте Лілку на макетній платі і ваш дисплей не здатний працювати на "
+"швидкості 80 МГц через високий рівень шумів та ємкостей, викликаних "
+"макетною платою та перемичками."
+msgstr ""
+
+#: ../../build_flags.rst:11
+msgid ""
+"Завдяки :term:`PlatformIO` ви можете змінити налаштування, відредагувавши"
+" файл `platformio.ini`. Для цього є опція ``build_flags``."
+msgstr ""
+
+#: ../../build_flags.rst:13
+msgid ""
+"Наприклад, для того, щоб вимкнути всі звуки, ви можете відредагувати файл"
+" ``firmware/main/platformio.ini`` та додати наступний рядок:"
+msgstr ""
+
+#: ../../build_flags.rst:27
+msgid "Після цього ви повинні перекомпілювати вашу прошивку."
+msgstr ""
+
+#: ../../build_flags.rst:30
+msgid "Перелік опцій"
+msgstr ""
+
+#: ../../build_flags.rst:34
+msgid ""
+"Використовуйте цю опцію, якщо ви збираєте Лілку на макетній платі або на "
+"іншій платі, яка має високий рівень шумів та ємкостей."
+msgstr ""
+
+#: ../../build_flags.rst:36
+msgid "Вона зменшує швидкість SPI-шини з 80 МГц до 40 МГц."
+msgstr ""
+
+#: ../../build_flags.rst:40
+msgid ""
+"Встановіть цю опцію, щоб вимкнути звук, який Лілка відтворює через "
+"п'єзоелектричний динамік при увімкненні."
+msgstr ""
+
+#: ../../build_flags.rst:44
+msgid ""
+"Встановіть цю опцію, щоб вимкнути звук, який Лілка відтворює через "
+"I2S-модуль при увімкненні."
+msgstr ""
+

@@ -74,6 +74,10 @@ intersphinx_mapping = {
 }
 intersphinx_disabled_reftypes = ["*"]
 
+# -- Intl --------------------------------------------------------------------
+locale_dirs = ["locale/"]  # path is example but recommended.
+gettext_compact = False  # optional.
+
 # -- Breathe configuration ---------------------------------------------------
 
 extensions.append("breathe")
@@ -120,5 +124,5 @@ hoverxref_role_types = {
 }
 
 # -- Images ------------------------------------------------------------------
-if os.name != 'nt': 
+if os.name != "nt":
     extensions.append("sphinxcontrib.images")
