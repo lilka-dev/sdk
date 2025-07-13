@@ -15,6 +15,12 @@ void Board::begin() {
     for (int pin : LILKA_EXT_PINS) {
         pinMode(pin, INPUT);
     }
+
+    pinMode(LILKA_SDCARD_CS, OUTPUT);
+    digitalWrite(LILKA_SDCARD_CS, HIGH);
+    pinMode(LILKA_DISPLAY_CS, OUTPUT);
+    digitalWrite(LILKA_DISPLAY_CS, HIGH);
+
     pinMode(LILKA_SLEEP, OUTPUT);
     digitalWrite(LILKA_SLEEP, HIGH);
 #endif
