@@ -13,7 +13,7 @@ void begin() {
     audio.begin();
     spi_begin();
     fileutils.begin();
-    display.begin(); // Must be initialized AFTER SD card
+    display.begin();
     controller.begin(); // Must be initialized AFTER SD card (since SD card somehow messes with GPIO)
     battery.begin();
 #ifdef LILKA_BLE
