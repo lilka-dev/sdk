@@ -61,31 +61,38 @@
 // Lilka v2 (S3)
 
 // Кнопки
-#    define LILKA_GPIO_UP                38
-#    define LILKA_GPIO_DOWN              41
-#    define LILKA_GPIO_LEFT              39
-#    define LILKA_GPIO_RIGHT             40
-#    define LILKA_GPIO_SELECT            0 // Режим прошивання
-#    define LILKA_GPIO_START             4
-#    define LILKA_GPIO_A                 5
-#    define LILKA_GPIO_B                 6
-#    define LILKA_GPIO_C                 10
-#    define LILKA_GPIO_D                 9
+#    define LILKA_GPIO_UP          38
+#    define LILKA_GPIO_DOWN        41
+#    define LILKA_GPIO_LEFT        39
+#    define LILKA_GPIO_RIGHT       40
+#    define LILKA_GPIO_SELECT      0 // Режим прошивання
+#    define LILKA_GPIO_START       4
+#    define LILKA_GPIO_A           5
+#    define LILKA_GPIO_B           6
+#    define LILKA_GPIO_C           10
+#    define LILKA_GPIO_D           9
 // Сон
-#    define LILKA_SLEEP                  46
+#    define LILKA_SLEEP            46
 // SPI
-#    define LILKA_SPI_SCK                18
-#    define LILKA_SPI_MOSI               17
-#    define LILKA_SPI_MISO               8
+#    define LILKA_SPI_SCK          18
+#    define LILKA_SPI_MOSI         17
+#    define LILKA_SPI_MISO         8
 // Дисплей
-#    define LILKA_DISPLAY_DC             15
-#    define LILKA_DISPLAY_CS             7
-#    define LILKA_DISPLAY_RST            -1
-#    define LILKA_DISPLAY_ROTATION       3
-#    define LILKA_DISPLAY_WIDTH          240 // Display dimensions in unrotated state
-#    define LILKA_DISPLAY_HEIGHT         280 // (will be adjusted by rotation inside Arduino_GFX)
+#    define LILKA_DISPLAY_DC       15
+#    define LILKA_DISPLAY_CS       7
+#    define LILKA_DISPLAY_RST      -1
+#    define LILKA_DISPLAY_ROTATION 3
+#    define LILKA_DISPLAY_WIDTH    240 // Display dimensions in unrotated state
+#    define LILKA_DISPLAY_HEIGHT   280 // (will be adjusted by rotation inside Arduino_GFX)
 // uSD-карта
-#    define LILKA_SDCARD_CS              16
+#    define LILKA_SDCARD_CS        16
+// uSD-картка на роз'ємі розширення
+#    ifdef USE_EXT_SPI_FOR_SD
+#        define SPI2_SCK     21
+#        define SPI2_MISO    14
+#        define SPI2_MOSI    47
+#        define SPI2_DEV1_CS 48 // Chip Select для пристрою 1
+#    endif
 // Рівень батареї
 #    define LILKA_BATTERY_ADC            3
 #    define LILKA_BATTERY_ADC_FUNC(name) adc1_##name
