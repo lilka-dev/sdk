@@ -298,9 +298,11 @@ int16_t Menu::getCursor() {
 }
 void Menu::setColor(uint16_t color) {
     this->color = color;
-    for (auto& item : items) {
-        item.color = color;
-    }
+    // Idea is actually almost incredible, a single problem is that we can't mention default
+    // color in Menu.addItem, so, maybe better not to :)
+    // for (auto& item : items) {
+    //     item.color = color;
+    // }
 }
 void Menu::setBackgroundColor(uint16_t color) {
     this->bgColor = color;
