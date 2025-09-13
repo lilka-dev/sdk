@@ -75,7 +75,7 @@ public:
     /// @param callback Вказівник на функцію яку буде викликано при закритті меню.
     /// @param callbackData Дані які буде передано в callback функцію
     void addItem(
-        String title, const menu_icon_t* icon = 0, uint16_t color = 0, String postfix = "",
+        String title, const menu_icon_t* icon = 0, uint16_t color = lilka::colors::White, String postfix = "",
         PMenuItemCallback callback = NULL, void* callbackData = NULL
     );
 
@@ -105,6 +105,13 @@ public:
     ///
     /// Якщо пункт обрано, тобто користувач натиснув кнопку "A" (або іншу кнопку, яка була додана за допомогою `addActivationButton()`), повертається `true`, інакше `false`.
     bool isFinished();
+
+    /// Встановити колір тексту за замовчуванням та скролбару
+    /// @param color колір тексту
+    void setColor(uint16_t color = lilka::colors::White);
+    /// Встановити колір фону меню
+    /// @param color Колір фону меню.
+    void setBackgroundColor(uint16_t color = lilka::colors::Black);
 
     /// Змінити пункт меню
     /// @param index Індекс пункту.
@@ -142,6 +149,8 @@ public:
     Button getButton();
 
 private:
+    uint16_t color = lilka::colors::White;
+    uint16_t bgColor = lilka::colors::Black;
     int16_t cursor;
     int16_t scroll;
     String title;
