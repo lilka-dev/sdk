@@ -68,6 +68,10 @@ bool Alert::isFinished() {
 }
 
 void Alert::addActivationButton(Button activationButton) {
+    // Handle if button already added
+    for (auto& addedButton : activationButtons) {
+        if (addedButton == activationButton) return;
+    }
     activationButtons.push_back(activationButton);
 }
 

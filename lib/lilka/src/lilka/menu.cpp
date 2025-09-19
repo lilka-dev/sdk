@@ -326,6 +326,10 @@ int16_t Menu::getItemCount() {
     return items.size();
 }
 void Menu::addActivationButton(Button activationButton) {
+    // Handle if button already added
+    for (auto& addedButton : activationButtons) {
+        if (addedButton == activationButton) return;
+    }
     activationButtons.push_back(activationButton);
 }
 void Menu::removeActivationButton(Button activationButton) {
