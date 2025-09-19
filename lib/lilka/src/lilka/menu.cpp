@@ -326,6 +326,10 @@ int16_t Menu::getItemCount() {
     return items.size();
 }
 void Menu::addActivationButton(Button activationButton) {
+    // Handle if button already added
+    if (std::find(activationButtons.begin(), activationButtons.end(), activationButton) != activationButtons.end())
+        return;
+
     activationButtons.push_back(activationButton);
 }
 void Menu::removeActivationButton(Button activationButton) {

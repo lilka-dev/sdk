@@ -68,6 +68,9 @@ bool Alert::isFinished() {
 }
 
 void Alert::addActivationButton(Button activationButton) {
+    // Handle if button already added
+    if (std::find(activationButtons.begin(), activationButtons.end(), activationButton) != activationButtons.end())
+        return;
     activationButtons.push_back(activationButton);
 }
 
