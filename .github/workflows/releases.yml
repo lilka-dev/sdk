@@ -1,32 +1,9 @@
 on:
   release:
     types: [published]
-  workflow_run:
-    workflows: ["sdk"]
-    types: [completed]
-    branches: [main]
 
 jobs:
-  check-sdk-status:
-    runs-on: ubuntu-latest
-    if: github.event_name == 'release' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
-    outputs:
-      should-run: ${{ steps.check.outputs.should-run }}
-    steps:
-      - name: Check if workflow should run
-        id: check
-        run: |
-          if [[ "${{ github.event_name }}" == "release" ]]; then
-            echo "should-run=true" >> $GITHUB_OUTPUT
-          elif [[ "${{ github.event_name }}" == "workflow_run" && "${{ github.event.workflow_run.conclusion }}" == "success" ]]; then
-            echo "should-run=true" >> $GITHUB_OUTPUT
-          else
-            echo "should-run=false" >> $GITHUB_OUTPUT
-          fi
-
   update-version:
-    needs: check-sdk-status
-    if: needs.check-sdk-status.outputs.should-run == 'true'
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.VERSION }}
