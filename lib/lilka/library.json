@@ -1,5 +1,5 @@
 {
-    "name": "lilka",
+    "name": "Lilka",
     "version": "1.0.0",
     "license": "GPL-2.0",
     "repository": {
@@ -7,9 +7,9 @@
         "url": "https://github.com/lilka-dev/sdk.git"
     },
     "dependencies": {
-        "moononournation/GFX Library for Arduino": "^1.4.5",
-        "olikraus/U8g2": "^2.35.9",
-        "h2zero/NimBLE-Arduino": "^1.4.3"
+        "moononournation/GFX Library for Arduino": "1.6.0",
+        "olikraus/U8g2": "2.35.9",
+        "h2zero/NimBLE-Arduino": "1.4.3"
     },
     "homepage": "https://github.com/lilka-dev/sdk",
     "frameworks": "arduino",
