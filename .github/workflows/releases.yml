@@ -1,0 +1,98 @@
+on:
+  release:
+    types: [published]
+  workflow_run:
+    workflows: ["sdk"]
+    types: [completed]
+    branches: [main]
+
+jobs:
+  check-sdk-status:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+    outputs:
+      should-run: ${{ steps.check.outputs.should-run }}
+    steps:
+      - name: Check if workflow should run
+        id: check
+        run: |
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+            echo "should-run=true" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.event_name }}" == "workflow_run" && "${{ github.event.workflow_run.conclusion }}" == "success" ]]; then
+            echo "should-run=true" >> $GITHUB_OUTPUT
+          else
+            echo "should-run=false" >> $GITHUB_OUTPUT
+          fi
+
+  update-version:
+    needs: check-sdk-status
+    if: needs.check-sdk-status.outputs.should-run == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.VERSION }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Extract version from tag
+        id: version
+        run: |
+          VERSION="${GITHUB_REF#refs/tags/}"
+          VERSION="${VERSION#v}"
+          echo "Extracted version: $VERSION"
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+      - name: Update library.json version
+        run: |
+          echo "Updating version to ${{ steps.version.outputs.VERSION }}"
+          sed -i 's/"version": "[^"]*"/"version": "${{ steps.version.outputs.VERSION }}"/' lib/lilka/library.json
+          echo "Updated library.json:"
+          cat lib/lilka/library.json
+
+  publish-to-pio:
+    needs: update-version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      - name: Install PlatformIO
+        run: |
+          python -m pip install --upgrade pip
+          pip install platformio
+      - name: Update library.json version
+        run: |
+          echo "Updating version to ${{ needs.update-version.outputs.version }}"
+          sed -i 's/"version": "[^"]*"/"version": "${{ needs.update-version.outputs.version }}"/' lib/lilka/library.json
+          cat lib/lilka/library.json
+      - name: Login to PlatformIO
+        run: |
+          pio account login -u "${{ secrets.PIO_USERNAME }}" -p "${{ secrets.PIO_PASSWORD }}"
+      - name: Publish to PlatformIO Registry
+        run: |
+          cd lib/lilka
+          pio pkg publish --non-interactive
+          echo "Published to PlatformIO Registry"
+
+  github-releases-to-discord:
+    needs: update-version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Update library.json version
+        run: |
+          echo "Updating version to ${{ needs.update-version.outputs.version }}"
+          sed -i 's/"version": "[^"]*"/"version": "${{ needs.update-version.outputs.version }}"/' lib/lilka/library.json
+      - name: Github Releases To Discord
+        uses: SethCohen/github-releases-to-discord@v1.13.0
+        with:
+          webhook_url: ${{ secrets.WEBHOOK_URL }}
+          color: "2105893"
+          username: "Release Changelog SDK"
+          avatar_url: "https://avatars.githubusercontent.com/u/213694258?s=48&v=4"
+          content: "||@everyone||"
+          footer_title: "Changelog"
+          footer_icon_url: "https://avatars.githubusercontent.com/u/213694258?s=48&v=4"
+          footer_timestamp: true
