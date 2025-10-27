@@ -1,12 +1,11 @@
-#ifndef LILKA_CONTROLLER_H
-#define LILKA_CONTROLLER_H
+#pragma once
 
 #include "config.h"
 
 #include <stdint.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/semphr.h>
-
+#define GET_BIT(data, bit_no) ((data) >> (bit_no)) & 0b1
 namespace lilka {
 
 typedef enum {
@@ -144,5 +143,3 @@ private:
 extern Controller controller;
 
 } // namespace lilka
-
-#endif // LILKA_CONTROLLER_H
