@@ -6,17 +6,24 @@
 #include <esp32/clk.h>
 
 // Serial configuration:
-#define SERIAL_BAUD_RATE  115200
-#define SERIAL_TIMEOUT    0
+#define SERIAL_BAUD_RATE 115200
+#define SERIAL_TIMEOUT   0
 
-#define STRX(x)           #x
-#define STR(x)            STRX(x)
+#define STRX(x)          #x
+#define STR(x)           STRX(x)
 
-#define ANSI_COLOR(x)     "\033[1;" #x "m"
-#define ANSI_RESET        "\033[0m"
-#define LILKA_LOG_FORMAT  "[ Lilka V" STR(LILKA_VERSION) " ][ " ANSI_COLOR(32) "INFO " ANSI_RESET " ]-> "
-#define LILKA_ERR_FORMAT  "[ Lilka V" STR(LILKA_VERSION) " ][ " ANSI_COLOR(31) "ERROR" ANSI_RESET " ]-> "
-#define LILKA_IDF_FORMAT  "[ Lilka V" STR(LILKA_VERSION) " ][ " ANSI_COLOR(34) "IDF  " ANSI_RESET " ]-> "
+#define ANSI_COLOR(x)    "\033[1;" #x "m"
+#define ANSI_RESET       "\033[0m"
+#ifdef LILKA_LONG_FORMAT
+#    define LILKA_LOG_FORMAT "[ Lilka V" STR(LILKA_VERSION) " ][ " ANSI_COLOR(32) "INFO " ANSI_RESET " ]-> "
+#    define LILKA_ERR_FORMAT "[ Lilka V" STR(LILKA_VERSION) " ][ " ANSI_COLOR(31) "ERROR" ANSI_RESET " ]-> "
+#    define LILKA_IDF_FORMAT "[ Lilka V" STR(LILKA_VERSION) " ][ " ANSI_COLOR(34) "IDF  " ANSI_RESET " ]-> "
+#else
+#    define LILKA_LOG_FORMAT "[ " ANSI_COLOR(32) "L " ANSI_RESET " ] "
+#    define LILKA_ERR_FORMAT "[ " ANSI_COLOR(31) "E" ANSI_RESET " ] "
+#    define LILKA_IDF_FORMAT "[ " ANSI_COLOR(34) "I  " ANSI_RESET " ] "
+
+#endif
 
 #define TX_BUFFER_SIZE    256
 #define STDIN_FD          0
