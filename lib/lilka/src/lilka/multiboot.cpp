@@ -1,9 +1,21 @@
 #include <stdio.h>
 #include <Preferences.h>
+#include <string.h>
 
 #include "multiboot.h"
 #include "fileutils.h"
 #include "serial.h"
+#include <esp_crc.h>
+#ifndef MULTIBOOT_CMD_LEN
+#    define MULTIBOOT_CMD_LEN 1024
+#endif
+
+typedef struct {
+    char cmd[MULTIBOOT_CMD_LEN];
+    uint32_t crc;
+} KernelParams;
+
+RTC_DATA_ATTR KernelParams kcmd;
 
 extern "C" bool verifyRollbackLater() {
     return true;
@@ -20,6 +32,47 @@ MultiBoot::MultiBoot() :
 }
 
 void MultiBoot::begin() {
+    // Get commandline args
+
+    // verify commandline crc
+    uint32_t cmdcrc = esp_crc32_le(0, reinterpret_cast<uint8_t*>(kcmd.cmd), MULTIBOOT_CMD_LEN);
+    if (cmdcrc == kcmd.crc) {
+        // count argc
+        int count = 0;
+
+        const char* p = kcmd.cmd;
+        while (*p) {
+            while (*p == ' ')
+                p++;
+            if (!*p) break;
+            count++;
+            while (*p && *p != ' ')
+                p++;
+        }
+        argc = count;
+        argv = reinterpret_cast<char**>(malloc(sizeof(char*) * (count + 1)));
+
+        // split
+        int i = 0;
+        char* c = kcmd.cmd;
+        while (*c) {
+            while (*c == ' ')
+                c++;
+            if (!*c) break;
+            argv[i++] = c;
+            while (*c && *c != ' ')
+                c++;
+            if (*c) *c++ = '\0';
+        }
+        argv[i] = NULL;
+        // after we made a split in iram we can be sure that our crc now is a joke
+
+        serial.log("Boot with params %d argc, argv =>");
+        for (size_t i = 0; i < argc; i++) {
+            serial.log("%s\n", argv[i]);
+        }
+        
+    }
     current_partition = esp_ota_get_running_partition();
     serial.log(
         "Current partition: %s, type: %d, subtype: %d, size: %d",
@@ -233,6 +286,20 @@ String MultiBoot::getFirmwarePath() {
     }
     prefs.end();
     return arg;
+}
+void MultiBoot::setCMDParams(String cmd) {
+    if (cmd.length() > MULTIBOOT_CMD_LEN) {
+        serial.err("Too long commandline for kernel set. Consider enlarging MULTIBOOT_CMD_LEN");
+    }
+    // ZERO MEM
+    memset(kcmd.cmd, 0, MULTIBOOT_CMD_LEN);
+    kcmd.crc = 0;
+
+    // copying parameter
+    memcpy(kcmd.cmd, cmd.c_str(), cmd.length());
+
+    // Calculating crc 32
+    kcmd.crc = esp_crc32_le(0, reinterpret_cast<uint8_t*>(kcmd.cmd), MULTIBOOT_CMD_LEN);
 }
 
 MultiBoot multiboot;
