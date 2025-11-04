@@ -42,7 +42,7 @@ Image* Resources::loadImageBMP(FILE* file, int32_t transparentColor, int32_t piv
             }
         } else {
             // Are you trying to load a 1 megapixel image? Are you insane? :)
-            // serial_err("Image too large: %s (%d x %d)\n", filename.c_str(), width, height);
+            // serial.err("Image too large: %s (%d x %d)\n", filename.c_str(), width, height);
         }
     }
     return image;
@@ -89,12 +89,12 @@ Image* Resources::loadImage(String filename, int32_t transparentColor, int32_t p
             } else if (fileSignature[0] == 0x89 && fileSignature[1] == 'P' && fileSignature[2] == 'N' && fileSignature[3] == 'G') {
                 image = loadImagePNG(file, transparentColor, pivotX, pivotY);
             } else {
-                // serial_err("Invalid file type: %d %d %d %d\n", fileSignature[0], fileSignature[1], fileSignature[2], fileSignature[3]);
+                // serial.err("Invalid file type: %d %d %d %d\n", fileSignature[0], fileSignature[1], fileSignature[2], fileSignature[3]);
             }
         }
         fclose(file);
     } else {
-        // serial_err("File not found: %s\n", filename.c_str());
+        // serial.err("File not found: %s\n", filename.c_str());
     }
     return image;
 }
@@ -102,7 +102,7 @@ Image* Resources::loadImage(String filename, int32_t transparentColor, int32_t p
 int Resources::readFile(String filename, String& fileContent) {
     FILE* file = fopen(filename.c_str(), "r");
     if (!file) {
-        // serial_err("File not found: %s\n", filename.c_str());
+        // serial.err("File not found: %s\n", filename.c_str());
         return 1;
     }
     fseek(file, 0, SEEK_END);
@@ -120,7 +120,7 @@ int Resources::readFile(String filename, String& fileContent) {
 int Resources::writeFile(String filename, String fileContent) {
     FILE* file = fopen(filename.c_str(), "w");
     if (!file) {
-        // serial_err("Failed to open file for writing: %s\n", filename.c_str());
+        // serial.err("Failed to open file for writing: %s\n", filename.c_str());
         return 1;
     }
     fwrite(fileContent.c_str(), 1, fileContent.length(), file);

@@ -21,7 +21,7 @@ MultiBoot::MultiBoot() :
 
 void MultiBoot::begin() {
     current_partition = esp_ota_get_running_partition();
-    serial_log(
+    serial.log(
         "Current partition: %s, type: %d, subtype: %d, size: %d",
         current_partition->label,
         current_partition->type,
@@ -29,7 +29,7 @@ void MultiBoot::begin() {
         current_partition->size
     );
     ota_partition = esp_ota_get_next_update_partition(current_partition); // get ota1 (we're in ota0 now)
-    serial_log(
+    serial.log(
         "OTA partition: %s, type: %d, subtype: %d, size: %d",
         ota_partition->label,
         ota_partition->type,
@@ -46,18 +46,18 @@ void MultiBoot::begin() {
     esp_ota_img_states_t ota_state;
     esp_err_t err = esp_ota_get_state_partition(esp_ota_get_running_partition(), &ota_state);
     if (err != ESP_OK) {
-        serial_err("Failed to get state partition: %d", err);
+        serial.err("Failed to get state partition: %d", err);
         return;
     }
 
-    serial_log("OTA state: %d", ota_state);
+    serial.log("OTA state: %d", ota_state);
 
     if (ota_state == ESP_OTA_IMG_PENDING_VERIFY) {
-        serial_log("Rollback is possible");
+        serial.log("Rollback is possible");
         // Mark ota0 as active partition so that we return to main application after next restart
         esp_ota_set_boot_partition(esp_ota_get_next_update_partition(NULL));
     } else {
-        serial_log("Rollback is not possible");
+        serial.log("Rollback is not possible");
     }
     */
 
@@ -70,9 +70,9 @@ void MultiBoot::begin() {
     // Mark ota0 as active partition so that we return to main application after next restart
     // esp_ota_img_states_t ota_state;
     // esp_err_t err = esp_ota_get_state_partition(esp_ota_get_running_partition(), &ota_state);
-    // serial_log("OTA state: %d", ota_state);
+    // serial.log("OTA state: %d", ota_state);
     // if (err != ESP_OK) {
-    //     serial_err("Failed to get state partition: %d", err);
+    //     serial.err("Failed to get state partition: %d", err);
     //     return;
     // }
     // if (current_partition->subtype == ESP_PARTITION_SUBTYPE_APP_OTA_1) {
@@ -86,7 +86,7 @@ void MultiBoot::begin() {
 
     esp_ota_img_states_t ota_state;
     esp_err_t err = esp_ota_get_state_partition(esp_ota_get_running_partition(), &ota_state);
-    serial_log("OTA state: %d", ota_state);
+    serial.log("OTA state: %d", ota_state);
 }
 
 int MultiBoot::start(String path) {
@@ -94,7 +94,7 @@ int MultiBoot::start(String path) {
     this->path = path;
 
     if (!fileutils.isSDAvailable()) {
-        serial_err("SD card not available");
+        serial.err("SD card not available");
         return -1;
     }
 
@@ -103,7 +103,7 @@ int MultiBoot::start(String path) {
     // TODO: Use sdcard instead of SD
     file = fopen(path.c_str(), "r");
     if (file == NULL) {
-        serial_err("Failed to open file: %s", path.c_str());
+        serial.err("Failed to open file: %s", path.c_str());
         return -2;
     }
 
@@ -115,10 +115,10 @@ int MultiBoot::start(String path) {
 
     current_partition = esp_ota_get_running_partition();
     if (current_partition == NULL) {
-        serial_err("Failed to get current partition");
+        serial.err("Failed to get current partition");
         return -3;
     }
-    serial_log(
+    serial.log(
         "Current partition: %s, type: %d, subtype: %d, size: %d",
         current_partition->label,
         current_partition->type,
@@ -127,10 +127,10 @@ int MultiBoot::start(String path) {
     );
     ota_partition = esp_ota_get_next_update_partition(current_partition); // get ota1 (we're in ota0 now)
     if (ota_partition == NULL) {
-        serial_err("Failed to get next OTA partition");
+        serial.err("Failed to get next OTA partition");
         return -4;
     }
-    serial_log(
+    serial.log(
         "OTA partition: %s, type: %d, subtype: %d, size: %d",
         ota_partition->label,
         ota_partition->type,
@@ -140,7 +140,7 @@ int MultiBoot::start(String path) {
 
     esp_err_t err = esp_ota_begin(ota_partition, bytesTotal, &ota_handle);
     if (err != ESP_OK) {
-        serial_err("Failed to begin OTA: %d", err);
+        serial.err("Failed to begin OTA: %d", err);
         return -5;
     }
 
@@ -173,7 +173,7 @@ int MultiBoot::process() {
 
         esp_err_t err = esp_ota_write(ota_handle, buf, len);
         if (err != ESP_OK) {
-            serial_err("Failed to write OTA: %d", err);
+            serial.err("Failed to write OTA: %d", err);
             return -6;
         }
 
@@ -202,18 +202,18 @@ int MultiBoot::getBytesWritten() {
 }
 
 int MultiBoot::finishAndReboot() {
-    serial_log("Written %d bytes", bytesWritten);
+    serial.log("Written %d bytes", bytesWritten);
 
     esp_err_t err = esp_ota_end(ota_handle);
     if (err != ESP_OK) {
-        serial_err("Failed to end OTA: %d", err);
+        serial.err("Failed to end OTA: %d", err);
         return -7;
     }
 
     // Перевстановлення активного розділу на OTA-розділ (його буде запущено лише один раз, після чого активним залишиться основний розділ).
     err = esp_ota_set_boot_partition(ota_partition);
     if (err != ESP_OK) {
-        serial_err("Failed to set boot partition: %d", err);
+        serial.err("Failed to set boot partition: %d", err);
         return -8;
     }
 

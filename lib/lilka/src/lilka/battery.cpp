@@ -15,7 +15,7 @@ Battery::Battery() : emptyVoltage(LILKA_DEFAULT_EMPTY_VOLTAGE), fullVoltage(LILK
 
 void Battery::begin() {
 #if LILKA_VERSION < 2
-    serial_err("Battery is not supported in this version of Lilka");
+    serial.err("Battery is not supported in this version of Lilka");
 #else
     pinMode(LILKA_BATTERY_ADC, INPUT_PULLDOWN); // If battery is not connected, the reading will be 0
     // adcX_config_channel_atten(adc1_channel_t channel, adc_atten_t atten)
