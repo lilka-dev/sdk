@@ -9,7 +9,7 @@
 #ifndef MULTIBOOT_CMD_LEN
 #    define MULTIBOOT_CMD_LEN 1024
 #endif
-
+#define MULTIBOOT_KCMD_DEFAULT_LOCATION 0x50000000
 typedef struct {
     char cmd[MULTIBOOT_CMD_LEN];
     uint32_t crc;
@@ -34,42 +34,53 @@ MultiBoot::MultiBoot() :
 void MultiBoot::begin() {
     // Get commandline args
 
-    // verify commandline crc
-    uint32_t cmdcrc = esp_crc32_le(0, reinterpret_cast<uint8_t*>(kcmd.cmd), MULTIBOOT_CMD_LEN);
-    if (cmdcrc == kcmd.crc) {
-        // count argc
-        int count = 0;
+    bool verify_kcmd_loc = &kcmd == MULTIBOOT_KCMD_DEFAULT_LOCATION;
+    if (!verify_kcmd_loc) {
+        lilka::serial.err(
+            "kernel cmd parameters structure located in unexpected place %p. Default location %x",
+            &kcmd,
+            MULTIBOOT_KCMD_DEFAULT_LOCATION
+        );
+        lilka::serial.err("kernel commandline parameters would be ignored");
+    } else {
+        // verify commandline crc
 
-        const char* p = kcmd.cmd;
-        while (*p) {
-            while (*p == ' ')
-                p++;
-            if (!*p) break;
-            count++;
-            while (*p && *p != ' ')
-                p++;
-        }
-        argc = count;
-        argv = reinterpret_cast<char**>(malloc(sizeof(char*) * (count + 1)));
+        uint32_t cmdcrc = esp_crc32_le(0, reinterpret_cast<uint8_t*>(kcmd.cmd), MULTIBOOT_CMD_LEN);
+        if (cmdcrc == kcmd.crc) {
+            // count argc
+            int count = 0;
 
-        // split
-        int i = 0;
-        char* c = kcmd.cmd;
-        while (*c) {
-            while (*c == ' ')
-                c++;
-            if (!*c) break;
-            argv[i++] = c;
-            while (*c && *c != ' ')
-                c++;
-            if (*c) *c++ = '\0';
-        }
-        argv[i] = NULL;
-        // after we made a split in iram we can be sure that our crc now is a joke
+            const char* p = kcmd.cmd;
+            while (*p) {
+                while (*p == ' ')
+                    p++;
+                if (!*p) break;
+                count++;
+                while (*p && *p != ' ')
+                    p++;
+            }
+            argc = count;
+            argv = reinterpret_cast<char**>(malloc(sizeof(char*) * (count + 1)));
 
-        serial.log("Boot with params %d argc, argv =>");
-        for (size_t j = 0; j < argc; j++) {
-            serial.log("%s\n", argv[j]);
+            // split
+            int i = 0;
+            char* c = kcmd.cmd;
+            while (*c) {
+                while (*c == ' ')
+                    c++;
+                if (!*c) break;
+                argv[i++] = c;
+                while (*c && *c != ' ')
+                    c++;
+                if (*c) *c++ = '\0';
+            }
+            argv[i] = NULL;
+            // after we made a split in iram we can be sure that our crc now is a joke
+
+            serial.log("Boot with params %d argc, argv =>");
+            for (size_t j = 0; j < argc; j++) {
+                serial.log("%s\n", argv[j]);
+            }
         }
     }
     current_partition = esp_ota_get_running_partition();
