@@ -43,6 +43,11 @@ void Controller::inputTask() {
     while (1) {
         {
             AcquireController acquire(semaphore);
+            // NOTE: Possible hardware improvement, use pins from a single group
+            // 0-31/32-64
+            uint32_t gpioReg = GPIO_REG_READ(GPIO_IN_REG);
+            uint32_t gpio1Reg = GPIO_REG_READ(GPIO_IN1_REG);
+            auto ms = millis();
             for (int i = 0; i < Button::COUNT; i++) {
                 if (i == Button::ANY) {
                     // Skip "any" key since its state is computed from other keys
@@ -53,14 +58,15 @@ void Controller::inputTask() {
                 if (pins[i] < 0) {
                     continue;
                 }
-                if (millis() - buttonState->time < LILKA_DEBOUNCE_TIME) {
-                    continue;
-                }
+                // instead we sleep for LILKA_DEBOUNCE_TIME
+                // if (ms - buttonState->time < LILKA_DEBOUNCE_TIME) {
+                //     continue;
+                // }
 
                 // Is the button being held down?
-                bool pressed = !digitalRead(pins[i]);
+                bool pressed = !(pins[i] < 32 ? GET_BIT(gpioReg, pins[i]) : GET_BIT(gpio1Reg, pins[i] - 32));
                 // Should the button repeat right now?
-                bool shouldRepeat = buttonState->nextRepeatTime && millis() >= buttonState->nextRepeatTime;
+                bool shouldRepeat = buttonState->nextRepeatTime && (ms >= buttonState->nextRepeatTime);
 
                 // Make/break
                 if (pressed != buttonState->pressed || shouldRepeat) {
@@ -76,7 +82,7 @@ void Controller::inputTask() {
                     if (globalHandler != NULL) {
                         globalHandler((Button)i, pressed);
                     }
-                    buttonState->time = millis();
+                    buttonState->time = ms;
                 }
 
                 // Calculate repeats
@@ -86,7 +92,7 @@ void Controller::inputTask() {
                         // Repeat is enabled, set next repeat time
                         if (buttonState->nextRepeatTime == 0) {
                             // This is the first repeat, delay by repeatDelay
-                            buttonState->nextRepeatTime = millis() + buttonState->repeatDelay;
+                            buttonState->nextRepeatTime = ms + buttonState->repeatDelay;
                         } else if (millis() >= buttonState->nextRepeatTime) {
                             // Delay subsequent repeats by 1/repeatRate seconds
                             buttonState->nextRepeatTime += 1000 / buttonState->repeatRate;
@@ -99,8 +105,8 @@ void Controller::inputTask() {
             }
         }
 
-        // Sleep for 5ms
-        vTaskDelay(5 / portTICK_PERIOD_MS);
+        // Sleep for LILKA_DEBOUNCE_TIME
+        vTaskDelay(LILKA_DEBOUNCE_TIME / portTICK_PERIOD_MS);
     }
 }
 
