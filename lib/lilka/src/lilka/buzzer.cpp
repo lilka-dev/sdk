@@ -18,7 +18,7 @@ Buzzer::Buzzer() :
 void Buzzer::begin() {
     // TODO: Use ledc?
 #if LILKA_VERSION < 2
-    serial_err("Buzzer is not supported on this board");
+    serial.err("Buzzer is not supported on this board");
     return;
 #else
 
@@ -38,7 +38,7 @@ void Buzzer::begin() {
 
 void Buzzer::play(uint16_t frequency) {
 #if LILKA_VERSION < 2
-    serial_err("Buzzer is not supported on this board");
+    serial.err("Buzzer is not supported on this board");
     return;
 #else
     xSemaphoreTake(buzzerMutex, portMAX_DELAY);
@@ -50,7 +50,7 @@ void Buzzer::play(uint16_t frequency) {
 
 void Buzzer::play(uint16_t frequency, uint32_t duration) {
 #if LILKA_VERSION < 2
-    serial_err("Buzzer is not supported on this board");
+    serial.err("Buzzer is not supported on this board");
     return;
 #else
     xSemaphoreTake(buzzerMutex, portMAX_DELAY);
@@ -62,7 +62,7 @@ void Buzzer::play(uint16_t frequency, uint32_t duration) {
 
 void Buzzer::playMelody(const Tone* melody, uint32_t length, uint32_t tempo) {
 #if LILKA_VERSION < 2
-    serial_err("Buzzer is not supported on this board");
+    serial.err("Buzzer is not supported on this board");
 #else
     xSemaphoreTake(buzzerMutex, portMAX_DELAY);
     _stop();
@@ -74,7 +74,7 @@ void Buzzer::playMelody(const Tone* melody, uint32_t length, uint32_t tempo) {
     currentMelodyTempo = tempo;
     // Serial.println("Melody task starting, length: " + String(length) + ", tempo: " + String(tempo) + ", first note frequency: " + String(melody[0].frequency));
     if (xTaskCreate(melodyTask, "melodyTask", 2048, this, 1, &melodyTaskHandle) != pdPASS) {
-        serial_err("Failed to create melody task (not enough memory?)");
+        serial.err("Failed to create melody task (not enough memory?)");
     }
     xSemaphoreGive(buzzerMutex);
 #endif
@@ -83,7 +83,7 @@ void Buzzer::playMelody(const Tone* melody, uint32_t length, uint32_t tempo) {
 void Buzzer::melodyTask(void* arg) {
     Buzzer* buzzer = static_cast<Buzzer*>(arg);
 #if LILKA_VERSION < 2
-    serial_err("Buzzer is not supported on this board");
+    serial.err("Buzzer is not supported on this board");
 #else
     // Serial.println("Melody task started");
     for (uint32_t i = 0; i < buzzer->currentMelodyLength; i++) {
@@ -118,7 +118,7 @@ void Buzzer::melodyTask(void* arg) {
 
 void Buzzer::stop() {
 #if LILKA_VERSION < 2
-    serial_err("Buzzer is not supported on this board");
+    serial.err("Buzzer is not supported on this board");
 #else
     xSemaphoreTake(buzzerMutex, portMAX_DELAY);
     _stop();

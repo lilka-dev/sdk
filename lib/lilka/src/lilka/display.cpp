@@ -37,7 +37,7 @@ Display::Display() :
 }
 
 void Display::begin() {
-    serial_log("initializing display");
+    serial.log("initializing display");
 #ifdef LILKA_BREADBOARD
     Arduino_ST7789::begin(40000000);
 #else
@@ -91,7 +91,7 @@ void Display::begin() {
             endWrite();
         }
     }
-    serial_log("display ok");
+    serial.log("display ok");
 }
 
 void Display::setSplash(const void* splash, uint32_t rleLength) {
@@ -188,7 +188,7 @@ void GFX<T>::drawImageTransformed(Image* image, int16_t destX, int16_t destY, Tr
 
     if (bottomRight.x - topLeft.x == 0 || bottomRight.y - topLeft.y == 0) {
         // The transformed image is empty.
-        lilka::serial_err("Transform leads to image with zero width or height");
+        lilka::serial.err("Transform leads to image with zero width or height");
         return;
     }
 
@@ -470,7 +470,7 @@ Transform Transform::scale(float sx, float sy) {
     // Scale this transform by sx and sy. Do this by multiplying with a scaling matrix.
     if (sx == 0 || sy == 0) {
         // Scaling by zero is not allowed
-        serial_err("Scaling by zero is not allowed, attempted to scale by %f, %f", sx, sy);
+        serial.err("Scaling by zero is not allowed, attempted to scale by %f, %f", sx, sy);
         return *this;
     }
     Transform t;

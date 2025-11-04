@@ -12,7 +12,7 @@ void ping_task(void* arg);
 
 void Audio::begin() {
 #if LILKA_VERSION == 1
-    serial_err("Audio not supported in this version of lilka. Try to use Buzzer instead");
+    serial.err("Audio not supported in this version of lilka. Try to use Buzzer instead");
 #elif LILKA_VERSION == 2
 
     initPins();
@@ -97,7 +97,7 @@ void Audio::saveSettings() {
 
 void ping_task(void* arg) {
 #if LILKA_VERSION == 1
-    serial_err("This part of code should never be called. Audio not supported for this version of lilka");
+    serial.err("This part of code should never be called. Audio not supported for this version of lilka");
 #elif LILKA_VERSION == 2
 #    ifndef LILKA_NO_AUDIO_HELLO
 

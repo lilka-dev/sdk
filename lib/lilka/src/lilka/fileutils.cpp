@@ -19,11 +19,11 @@ void FileUtils::begin(bool beginSD, bool beginSPIFFS) {
 }
 
 void FileUtils::initSPIFFS() {
-    serial_log("initializing SPIFFS");
+    serial.log("initializing SPIFFS");
     if (!SPIFFS.begin(false, LILKA_SPIFFS_ROOT)) {
-        serial_err("failed to initialize SPIFFS");
+        serial.err("failed to initialize SPIFFS");
     } else {
-        serial_log("SPIFFS ok");
+        serial.log("SPIFFS ok");
     }
 }
 
@@ -33,10 +33,10 @@ bool FileUtils::initSD() {
     xSemaphoreTake(sdMutex, portMAX_DELAY);
 
     // check if LILKA_SDROOT pathable, if not perform init
-    serial_log("initializing SD card");
+    serial.log("initializing SD card");
 
 #if LILKA_SDCARD_CS < 0
-    serial_err("SD init failed: no CS pin");
+    serial.err("SD init failed: no CS pin");
 #else
     // clang-format off
 #ifdef USE_EXT_SPI_FOR_SD
@@ -58,7 +58,7 @@ bool init_result = sdfs->begin(
         return false;
     }
     if (cardType == CARD_SD || cardType == CARD_SDHC) {
-        serial_log(
+        serial.log(
             "card type: %s, card size: %s",
             cardType == CARD_SD ? "SD" : "SDHC",
             getHumanFriendlySize(sdfs->totalBytes()).c_str()
@@ -67,7 +67,7 @@ bool init_result = sdfs->begin(
         xSemaphoreGive(sdMutex);
         return true;
     } else {
-        serial_err("unknown SD card type: %d", cardType);
+        serial.err("unknown SD card type: %d", cardType);
     }
 #endif
     xSemaphoreGive(sdMutex);
@@ -76,7 +76,7 @@ bool init_result = sdfs->begin(
 
 uint32_t FileUtils::getEntryCount(FS* driver, const String& localPath) {
     if (driver == NULL) {
-        serial_err("Path (%s) reffers to unknown filesystem type", localPath.c_str());
+        serial.err("Path (%s) reffers to unknown filesystem type", localPath.c_str());
         return 0;
     }
 
@@ -84,11 +84,11 @@ uint32_t FileUtils::getEntryCount(FS* driver, const String& localPath) {
     // Below we assume if folder can't be open then it has zero files
     // Btw we will show this error using serial
     if (!root) {
-        serial_err("getEntryCount: failed to open directory: %s", localPath.c_str());
+        serial.err("getEntryCount: failed to open directory: %s", localPath.c_str());
         return 0;
     }
     if (!root.isDirectory()) {
-        serial_err("getEntryCount: not a directory: %s", localPath.c_str());
+        serial.err("getEntryCount: not a directory: %s", localPath.c_str());
         return 0;
     }
 
@@ -112,17 +112,17 @@ const String FileUtils::stripPath(const String& path) {
 
 size_t FileUtils::listDir(FS* driver, const String& localPath, Entry entries[]) {
     if (driver == NULL) {
-        serial_err("Path (%s) reffers to unknown filesystem type", localPath.c_str());
+        serial.err("Path (%s) reffers to unknown filesystem type", localPath.c_str());
         return 0;
     }
 
     File root = driver->open(stripPath(localPath));
     if (!root) {
-        serial_err("listDir: failed to open directory: %s", localPath.c_str());
+        serial.err("listDir: failed to open directory: %s", localPath.c_str());
         return -1;
     }
     if (!root.isDirectory()) {
-        serial_err("listDir: not a directory: %s", localPath.c_str());
+        serial.err("listDir: not a directory: %s", localPath.c_str());
         return -1;
     }
 
@@ -131,7 +131,7 @@ size_t FileUtils::listDir(FS* driver, const String& localPath, Entry entries[]) 
     String name = "";
     while ((name = root.getNextFileName(&isDir)) != "") {
         entries[i].name = basename(name.c_str());
-        //lilka::serial_log("New name = %s", name.c_str());
+        //lilka::serial.log("New name = %s", name.c_str());
 
         if (isDir) entries[i].type = ENT_DIRECTORY;
         else entries[i].type = ENT_FILE;
@@ -162,7 +162,7 @@ const String FileUtils::getCannonicalPath(const FS* driver, const String& localP
     } else if (driver == spiffs) {
         return String(LILKA_SPIFFS_ROOT) + localPath;
     }
-    serial_err("Unknown driver provided");
+    serial.err("Unknown driver provided");
     return localPath;
 }
 

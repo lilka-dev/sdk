@@ -121,14 +121,14 @@ void Controller::resetState() {
 }
 
 void Controller::begin() {
-    serial_log("initializing controller");
+    serial.log("initializing controller");
 
 #if LILKA_VERSION == 1
     // Detach UART from GPIO20 & GPIO21 to use them as normal IOs
     // https://esp32developer.com/programming-in-c-c/console/using-uart0-disable-logging-output
     esp_log_level_set("*", ESP_LOG_NONE); // DISABLE ESP32 LOGGING ON UART0
     if (uart_driver_delete(UART_NUM_0) != ESP_OK) {
-        serial_err("failed to detach UART0");
+        serial.err("failed to detach UART0");
     }
     gpio_reset_pin(GPIO_NUM_20);
     gpio_reset_pin(GPIO_NUM_21);
@@ -144,7 +144,7 @@ void Controller::begin() {
     // Create RTOS task for handling button presses
     xTaskCreate([](void* arg) { static_cast<Controller*>(arg)->inputTask(); }, "input", 2048, this, 1, NULL);
 
-    serial_log("controller ready");
+    serial.log("controller ready");
 }
 
 State Controller::getState() {
