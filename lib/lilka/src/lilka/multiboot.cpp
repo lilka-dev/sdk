@@ -30,7 +30,6 @@ MultiBoot::MultiBoot() :
 
 void MultiBoot::begin() {
     // Get commandline args
-
     bool verify_kcmd_loc = &kcmd == reinterpret_cast<KernelParams*>(MULTIBOOT_KCMD_DEFAULT_LOCATION);
     if (!verify_kcmd_loc) {
         lilka::serial.err(
@@ -45,6 +44,9 @@ void MultiBoot::begin() {
 
         bool verify_cmd_crc = cmdcrc == kcmd.crc;
         if (verify_cmd_crc) {
+            lilka::serial.log("Boot with cmd params");
+            lilka::serial.log(kcmd.cmd);
+
             // count argc
             int count = 0;
 
@@ -74,11 +76,6 @@ void MultiBoot::begin() {
             }
             argv[i] = NULL;
             // after we made a split in iram we can be sure that our crc now is a joke
-
-            serial.log("Boot with params %d argc, argv =>");
-            for (size_t j = 0; j < argc; j++) {
-                serial.log("%s\n", argv[j]);
-            }
         }
     }
     current_partition = esp_ota_get_running_partition();
