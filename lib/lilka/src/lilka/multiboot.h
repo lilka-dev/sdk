@@ -2,7 +2,9 @@
 #define LILKA_MULTIBOOT_H
 #include <esp_ota_ops.h>
 #include <Arduino.h>
-
+#ifndef MULTIBOOT_CMD_LEN
+#    define MULTIBOOT_CMD_LEN 1024
+#endif
 #include "fileutils.h"
 
 namespace lilka {

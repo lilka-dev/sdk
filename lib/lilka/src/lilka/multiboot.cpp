@@ -6,9 +6,6 @@
 #include "fileutils.h"
 #include "serial.h"
 #include <esp_crc.h>
-#ifndef MULTIBOOT_CMD_LEN
-#    define MULTIBOOT_CMD_LEN 1024
-#endif
 #define MULTIBOOT_KCMD_DEFAULT_LOCATION 0x50000000
 typedef struct {
     char cmd[MULTIBOOT_CMD_LEN];
@@ -43,10 +40,11 @@ void MultiBoot::begin() {
         );
         lilka::serial.err("kernel commandline parameters would be ignored");
     } else {
-        // verify commandline crc
-
+        // Verify commandline crc
         uint32_t cmdcrc = esp_crc32_le(0, reinterpret_cast<uint8_t*>(kcmd.cmd), MULTIBOOT_CMD_LEN);
-        if (cmdcrc == kcmd.crc) {
+
+        bool verify_cmd_crc = cmdcrc == kcmd.crc;
+        if (verify_cmd_crc) {
             // count argc
             int count = 0;
 
