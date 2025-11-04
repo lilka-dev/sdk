@@ -34,7 +34,7 @@ MultiBoot::MultiBoot() :
 void MultiBoot::begin() {
     // Get commandline args
 
-    bool verify_kcmd_loc = &kcmd == MULTIBOOT_KCMD_DEFAULT_LOCATION;
+    bool verify_kcmd_loc = &kcmd == reinterpret_cast<KernelParams*>(MULTIBOOT_KCMD_DEFAULT_LOCATION);
     if (!verify_kcmd_loc) {
         lilka::serial.err(
             "kernel cmd parameters structure located in unexpected place %p. Default location %x",
