@@ -304,7 +304,7 @@ int MultiBoot::getArgc() {
     return argc;
 }
 
-const char** MultiBoot::getArgv() {
+char** MultiBoot::getArgv() {
     return argv;
 }
 
