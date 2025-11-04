@@ -68,10 +68,9 @@ void MultiBoot::begin() {
         // after we made a split in iram we can be sure that our crc now is a joke
 
         serial.log("Boot with params %d argc, argv =>");
-        for (size_t i = 0; i < argc; i++) {
-            serial.log("%s\n", argv[i]);
+        for (size_t j = 0; j < argc; j++) {
+            serial.log("%s\n", argv[j]);
         }
-        
     }
     current_partition = esp_ota_get_running_partition();
     serial.log(

@@ -62,14 +62,14 @@ public:
     /// \return <0 - у разі помилки. В разі успіху цей метод не повертається, оскільки пристрій перезавантажується.
     int finishAndReboot();
     /// Встановити параметри командного рядку. Повний шлях до файлу прошивки передати першим параметром
-    /// @param cmd 
+    /// @param cmd
     void setCMDParams(String cmd);
     /// Повертає кількість аргументів командного рядка.
     /// @return Кількість аргументів (argc), включно з повним шляхом до файлу прошивки.
     int getArgc();
     /// Повертає масив аргументів командного рядка.
     /// @return Вказівник на масив рядків (argv), де кожен елемент — окремий аргумент.
-    char **getArgv();
+    char** getArgv();
 
     String getFirmwarePath();
 
@@ -81,8 +81,8 @@ private:
     const esp_partition_t* ota_partition;
     int bytesWritten;
     int bytesTotal;
-    int argc;
-    char **argv;
+    int argc = NULL;
+    char** argv = NULL;
 };
 
 /// Екземпляр класу `MultiBoot`, який можна використовувати для роботи з завантажувачем.
