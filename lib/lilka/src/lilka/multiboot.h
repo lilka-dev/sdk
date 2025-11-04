@@ -81,7 +81,7 @@ private:
     const esp_partition_t* ota_partition;
     int bytesWritten;
     int bytesTotal;
-    int argc = NULL;
+    int argc = 0;
     char** argv = NULL;
 };
 
