@@ -300,6 +300,13 @@ void MultiBoot::setCMDParams(String cmd) {
     // Calculating crc 32
     kcmd.crc = esp_crc32_le(0, reinterpret_cast<uint8_t*>(kcmd.cmd), MULTIBOOT_CMD_LEN);
 }
+int MultiBoot::getArgc() {
+    return argc;
+}
+
+const char** MultiBoot::getArgv() {
+    return argv;
+}
 
 MultiBoot multiboot;
 

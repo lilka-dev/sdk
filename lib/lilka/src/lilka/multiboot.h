@@ -69,7 +69,7 @@ public:
     int getArgc();
     /// Повертає масив аргументів командного рядка.
     /// @return Вказівник на масив рядків (argv), де кожен елемент — окремий аргумент.
-    char** getArgv();
+    const char** getArgv();
 
     String getFirmwarePath();
 
