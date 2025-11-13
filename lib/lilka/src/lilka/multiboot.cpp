@@ -1,9 +1,18 @@
 #include <stdio.h>
 #include <Preferences.h>
+#include <string.h>
 
 #include "multiboot.h"
 #include "fileutils.h"
 #include "serial.h"
+#include <esp_crc.h>
+#define MULTIBOOT_KCMD_DEFAULT_LOCATION 0x50000000
+typedef struct {
+    char cmd[MULTIBOOT_CMD_LEN];
+    uint32_t crc;
+} KernelParams;
+
+RTC_DATA_ATTR KernelParams kcmd;
 
 extern "C" bool verifyRollbackLater() {
     return true;
@@ -20,6 +29,55 @@ MultiBoot::MultiBoot() :
 }
 
 void MultiBoot::begin() {
+    // Get commandline args
+    bool verify_kcmd_loc = &kcmd == reinterpret_cast<KernelParams*>(MULTIBOOT_KCMD_DEFAULT_LOCATION);
+    if (!verify_kcmd_loc) {
+        lilka::serial.err(
+            "kernel cmd parameters structure located in unexpected place %p. Default location %x",
+            &kcmd,
+            MULTIBOOT_KCMD_DEFAULT_LOCATION
+        );
+        lilka::serial.err("kernel commandline parameters would be ignored");
+    } else {
+        // Verify commandline crc
+        uint32_t cmdcrc = esp_crc32_le(0, reinterpret_cast<uint8_t*>(kcmd.cmd), MULTIBOOT_CMD_LEN);
+
+        bool verify_cmd_crc = cmdcrc == kcmd.crc;
+        if (verify_cmd_crc) {
+            lilka::serial.log("Boot with cmd params");
+            lilka::serial.log(kcmd.cmd);
+
+            // count argc
+            int count = 0;
+
+            const char* p = kcmd.cmd;
+            while (*p) {
+                while (*p == ' ')
+                    p++;
+                if (!*p) break;
+                count++;
+                while (*p && *p != ' ')
+                    p++;
+            }
+            argc = count;
+            argv = reinterpret_cast<char**>(malloc(sizeof(char*) * (count + 1)));
+
+            // split
+            int i = 0;
+            char* c = kcmd.cmd;
+            while (*c) {
+                while (*c == ' ')
+                    c++;
+                if (!*c) break;
+                argv[i++] = c;
+                while (*c && *c != ' ')
+                    c++;
+                if (*c) *c++ = '\0';
+            }
+            argv[i] = NULL;
+            // after we made a split in iram we can be sure that our crc now is a joke
+        }
+    }
     current_partition = esp_ota_get_running_partition();
     serial.log(
         "Current partition: %s, type: %d, subtype: %d, size: %d",
@@ -233,6 +291,28 @@ String MultiBoot::getFirmwarePath() {
     }
     prefs.end();
     return arg;
+}
+void MultiBoot::setCMDParams(String cmd) {
+    if (cmd.length() > MULTIBOOT_CMD_LEN) {
+        serial.err("Too long commandline for kernel set. Consider enlarging MULTIBOOT_CMD_LEN");
+        return; // get out
+    }
+    // ZERO MEM
+    memset(kcmd.cmd, 0, MULTIBOOT_CMD_LEN);
+    kcmd.crc = 0;
+
+    // copying parameter
+    memcpy(kcmd.cmd, cmd.c_str(), cmd.length());
+
+    // Calculating crc 32
+    kcmd.crc = esp_crc32_le(0, reinterpret_cast<uint8_t*>(kcmd.cmd), MULTIBOOT_CMD_LEN);
+}
+int MultiBoot::getArgc() {
+    return argc;
+}
+
+char** MultiBoot::getArgv() {
+    return argv;
 }
 
 MultiBoot multiboot;

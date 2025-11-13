@@ -1,9 +1,10 @@
 #ifndef LILKA_MULTIBOOT_H
 #define LILKA_MULTIBOOT_H
-
 #include <esp_ota_ops.h>
 #include <Arduino.h>
-
+#ifndef MULTIBOOT_CMD_LEN
+#    define MULTIBOOT_CMD_LEN 1024
+#endif
 #include "fileutils.h"
 
 namespace lilka {
@@ -62,6 +63,15 @@ public:
     /// Завершити завантаження та перезавантажити пристрій.
     /// \return <0 - у разі помилки. В разі успіху цей метод не повертається, оскільки пристрій перезавантажується.
     int finishAndReboot();
+    /// Встановити параметри командного рядку. Повний шлях до файлу прошивки передати першим параметром
+    /// @param cmd
+    void setCMDParams(String cmd);
+    /// Повертає кількість аргументів командного рядка.
+    /// @return Кількість аргументів (argc), включно з повним шляхом до файлу прошивки.
+    int getArgc();
+    /// Повертає масив аргументів командного рядка.
+    /// @return Вказівник на масив рядків (argv), де кожен елемент — окремий аргумент.
+    char** getArgv();
 
     String getFirmwarePath();
 
@@ -73,6 +83,8 @@ private:
     const esp_partition_t* ota_partition;
     int bytesWritten;
     int bytesTotal;
+    int argc = 0;
+    char** argv = NULL;
 };
 
 /// Екземпляр класу `MultiBoot`, який можна використовувати для роботи з завантажувачем.
