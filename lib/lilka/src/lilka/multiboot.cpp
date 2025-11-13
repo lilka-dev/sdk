@@ -295,6 +295,7 @@ String MultiBoot::getFirmwarePath() {
 void MultiBoot::setCMDParams(String cmd) {
     if (cmd.length() > MULTIBOOT_CMD_LEN) {
         serial.err("Too long commandline for kernel set. Consider enlarging MULTIBOOT_CMD_LEN");
+        return; // get out
     }
     // ZERO MEM
     memset(kcmd.cmd, 0, MULTIBOOT_CMD_LEN);
