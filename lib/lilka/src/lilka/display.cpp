@@ -45,6 +45,10 @@ void Display::begin() {
 #endif
     setFont(FONT_10x20);
     setUTF8Print(true);
+    serial.log("display ok");
+}
+
+void Display::ShowStartUpScreen() {
     if (splash != NULL) {
         uint16_t row[display.width()];
         for (int i = 0; i <= 4; i++) {
@@ -91,7 +95,6 @@ void Display::begin() {
             endWrite();
         }
     }
-    serial.log("display ok");
 }
 
 void Display::setSplash(const void* splash, uint32_t rleLength) {

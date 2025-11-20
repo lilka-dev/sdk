@@ -17,15 +17,22 @@ void Audio::begin() {
 
     initPins();
 
+    I2S.setAllPins(LILKA_I2S_BCLK, LILKA_I2S_LRCK, LILKA_I2S_DOUT, LILKA_I2S_DOUT, -1);
+
+    if (startupSound) xTaskCreatePinnedToCore(ping_task, "ping_task", 4096, NULL, 1, NULL, 0);
+#endif
+}
+
+void Audio::PlayStartupSound() {
+#if LILKA_VERSION == 1
+    serial.err("Audio not supported in this version of lilka. Try to use Buzzer
+    instead");
+#elif LILKA_VERSION == 2
     Preferences prefs;
     prefs.begin("sound", true);
     volumeLevel = prefs.getUInt("volumeLevel", 100);
     startupSound = prefs.getBool("startupSound", true);
     prefs.end();
-
-    I2S.setAllPins(LILKA_I2S_BCLK, LILKA_I2S_LRCK, LILKA_I2S_DOUT, LILKA_I2S_DOUT, -1);
-
-    if (startupSound) xTaskCreatePinnedToCore(ping_task, "ping_task", 4096, NULL, 1, NULL, 0);
 #endif
 }
 
