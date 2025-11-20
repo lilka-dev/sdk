@@ -315,6 +315,10 @@ char** MultiBoot::getArgv() {
     return argv;
 }
 
+esp_reset_reason_t getResetReason() {
+    return esp_reset_reason();
+}
+
 MultiBoot multiboot;
 
 } // namespace lilka
