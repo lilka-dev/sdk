@@ -16,7 +16,7 @@ public:
     /// \warning Цей метод викликається автоматично при виклику `lilka::begin()`.
     void begin();
     /// Відтворює звук вітання, якщо він увімкнений в налаштуваннях.
-    void PlayStartupSound();
+    void playStartupSound();
     /// Налаштувує піни для I2S.
     /// Цей метод варто викликати перед викликом `i2s_driver_install()`.
     void initPins();

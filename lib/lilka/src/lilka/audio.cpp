@@ -23,7 +23,7 @@ void Audio::begin() {
 #endif
 }
 
-void Audio::PlayStartupSound() {
+void Audio::playStartupSound() {
 #if LILKA_VERSION == 1
     serial.err("Audio not supported in this version of lilka. Try to use Buzzer instead");
 #elif LILKA_VERSION == 2
