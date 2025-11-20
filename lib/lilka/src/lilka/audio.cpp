@@ -25,8 +25,7 @@ void Audio::begin() {
 
 void Audio::PlayStartupSound() {
 #if LILKA_VERSION == 1
-    serial.err("Audio not supported in this version of lilka. Try to use Buzzer
-    instead");
+    serial.err("Audio not supported in this version of lilka. Try to use Buzzer instead");
 #elif LILKA_VERSION == 2
     Preferences prefs;
     prefs.begin("sound", true);
