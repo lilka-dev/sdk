@@ -48,7 +48,7 @@ void Display::begin() {
     serial.log("display ok");
 }
 
-void Display::showStartUpScreen() {
+void Display::showStartupScreen() {
     if (splash != NULL) {
         uint16_t row[display.width()];
         for (int i = 0; i <= 4; i++) {
