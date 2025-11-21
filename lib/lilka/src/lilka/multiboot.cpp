@@ -315,7 +315,7 @@ char** MultiBoot::getArgv() {
     return argv;
 }
 
-esp_reset_reason_t getResetReason() {
+esp_reset_reason_t MultiBoot::getResetReason() {
     return esp_reset_reason();
 }
 
