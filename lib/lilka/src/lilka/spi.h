@@ -3,6 +3,9 @@
 
 #include <SPI.h>
 
+#define LILKA_SPI_NVS_NAMESPACE        "spi"
+#define LILKA_SPI_NVS_SD_FREQUENCY_KEY "sdFrequency"
+
 namespace lilka {
 
 #if CONFIG_IDF_TARGET_ESP32S2 || CONFIG_IDF_TARGET_ESP32S3

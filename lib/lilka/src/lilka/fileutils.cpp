@@ -1,4 +1,5 @@
 #include "fileutils.h"
+#include <Preferences.h>
 #include "serial.h"
 #include "spi.h"
 #include "config.h"
@@ -28,12 +29,21 @@ void FileUtils::initSPIFFS() {
 }
 
 bool FileUtils::initSD() {
+    // Read sd frequency from NVS
+    Preferences prefs;
+
+    prefs.begin(LILKA_SPI_NVS_NAMESPACE, true);
+
+    uint32_t sdFrequency = prefs.getUInt(LILKA_SPI_NVS_SD_FREQUENCY_KEY, LILKA_SD_FREQUENCY);
+
+    prefs.end();
+
     // Most likely we're trying to format card,
     // please standby
     xSemaphoreTake(sdMutex, portMAX_DELAY);
 
     // check if LILKA_SDROOT pathable, if not perform init
-    serial.log("initializing SD card");
+    serial.log("initializing SD card at %d Hz", sdFrequency);
 
 #if LILKA_SDCARD_CS < 0
     serial.err("SD init failed: no CS pin");
@@ -41,12 +51,12 @@ bool FileUtils::initSD() {
     // clang-format off
 #ifdef USE_EXT_SPI_FOR_SD
 bool init_result = sdfs->begin(
-        SPI2_DEV1_CS, SPI2, LILKA_SD_FREQUENCY, LILKA_SD_ROOT
-    ); // TODO: is 20 MHz OK for all cards? // TODO: is 20 MHz OK for all cards?
+        SPI2_DEV1_CS, SPI2, sdFrequency, LILKA_SD_ROOT
+    );
 #else
     bool init_result = sdfs->begin(
-        LILKA_SDCARD_CS, SPI1, LILKA_SD_FREQUENCY, LILKA_SD_ROOT
-    ); // TODO: is 20 MHz OK for all cards? // TODO: is 20 MHz OK for all cards?
+        LILKA_SDCARD_CS, SPI1, sdFrequency, LILKA_SD_ROOT
+    );
 #endif
     // clang-format on
     sdcard_type_t cardType = sdfs->cardType();
