@@ -27,7 +27,7 @@ size_t StringUtils::uclen(char* cstr) {
 }
 
 // Get length in Unicode characters
-size_t StringUtils::ulen(char* cstr, char* cstr_end) {
+size_t StringUtils::ulen(char* cstr, const char* cstr_end) {
     if (!cstr) return 0;
 
     size_t len = 0;

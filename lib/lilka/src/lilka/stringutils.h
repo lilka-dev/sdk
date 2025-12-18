@@ -20,7 +20,7 @@ public:
     /// Повертає довжину в байтах Unicode рядка
     /// @param cstr вказівник на cString
     /// @param cstr_end опціональний параметр кінця рядка
-    static size_t ulen(char* cstr, char* cstr_end = 0);
+    static size_t ulen(char* cstr, const char* cstr_end = 0);
 };
 
 extern StringUtils sutils;
