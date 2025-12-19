@@ -187,15 +187,13 @@ void InputDialog::draw(Arduino_GFX* canvas) {
     canvas->setTextBound(16, 16, kbTextWidth, canvas->height() - 32);
     canvas->setCursor(16, 48);
 
-    // Find out how much characters fit a screen
-    int16_t bx = 0, by = 0;
-    uint16_t w = 0, h = 0;
-
     // I like this cheat :D
     char* valPartToDisplay = const_cast<char*>(value.c_str() + value.length());
 
     // till fit screen, collect unicode characters from backside
     while (valPartToDisplay != value.c_str()) {
+        int16_t bx = 0, by = 0;
+        uint16_t w = 0, h = 0;
         valPartToDisplay = sutils.ubackward(valPartToDisplay);
         canvas->getTextBounds(valPartToDisplay, 16, 48, &bx, &by, &w, &h);
 
