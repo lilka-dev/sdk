@@ -4,7 +4,7 @@
 #include "icons/shifted.h"
 #include "icons/backspace.h"
 #include "icons/whitespace.h"
-
+#include "stringutils.h"
 namespace lilka {
 
 #define LILKA_KB_LANGS  2
@@ -173,6 +173,8 @@ void InputDialog::draw(Arduino_GFX* canvas) {
     int16_t kbTop = canvas->height() / 2 - 32;
     int16_t kbHeight = canvas->height() / 2;
     int16_t kbWidth = canvas->width();
+    int16_t kbTextWidth = kbWidth - 32;
+    int16_t kbTextHeight = 40; // with 10x20 font would fit two lines
 
     canvas->fillRect(0, 0, canvas->width(), canvas->height(), lilka::colors::Black);
     canvas->setTextColor(lilka::colors::White);
@@ -182,15 +184,38 @@ void InputDialog::draw(Arduino_GFX* canvas) {
     canvas->setCursor(16, 20);
     canvas->println(title);
 
-    canvas->setTextBound(16, 16, canvas->width() - 32, canvas->height() - 32);
+    canvas->setTextBound(16, 16, kbTextWidth, canvas->height() - 32);
     canvas->setCursor(16, 48);
+
+    // I like this cheat :D
+    char* valPartToDisplay = const_cast<char*>(value.c_str() + value.length());
+
+    // till fit screen, collect unicode characters from backside
+    while (valPartToDisplay != value.c_str()) {
+        int16_t bx = 0, by = 0;
+        uint16_t w = 0, h = 0;
+        valPartToDisplay = sutils.ubackward(valPartToDisplay);
+        canvas->getTextBounds(valPartToDisplay, 16, 48, &bx, &by, &w, &h);
+
+        if (h > kbTextHeight) {
+            size_t leaveSpace = 2;
+            for (auto i = 0; i < leaveSpace; i++)
+                valPartToDisplay = sutils.uforward(valPartToDisplay);
+            break;
+        }
+    }
+
+    // handle overlapping cursor
+    canvas->setTextBound(16, 16, kbTextWidth, kbTextHeight + 16);
+
     if (masked) {
-        for (int i = 0; i < value.length(); i++) {
+        for (int i = 0; i < sutils.ulen(valPartToDisplay); i++) {
             canvas->print("*");
         }
     } else {
-        canvas->print(value);
+        canvas->print(valPartToDisplay);
     }
+
     if (blinkPhase) {
         canvas->print("|");
     }
