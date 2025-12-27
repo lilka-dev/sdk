@@ -29,23 +29,61 @@ jobs:
     if: needs.check-sdk-status.outputs.should-run == 'true'
     runs-on: ubuntu-latest
     outputs:
-      version: ${{ steps.version.outputs.VERSION }}
+      version: ${{ steps.extract.outputs.VERSION }}
+      major: ${{ steps.extract.outputs.MAJOR }}
+      minor: ${{ steps.extract.outputs.MINOR }}
+      patch: ${{ steps.extract.outputs.PATCH }}
+      tag: ${{ steps.extract.outputs.TAG }}
+      type: ${{ steps.release.outputs.TYPE }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+
       - name: Extract version from tag
-        id: version
+        id: extract
         run: |
-          VERSION="${GITHUB_REF#refs/tags/}"
-          VERSION="${VERSION#v}"
+          # Отримати тег без refs/tags/
+          TAG="${GITHUB_REF#refs/tags/}"
+          VERSION="${TAG#v}"
+
+          # Розбити на major/minor/patch
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+
           echo "Extracted version: $VERSION"
+          echo "MAJOR=$MAJOR" >> $GITHUB_OUTPUT
+          echo "MINOR=$MINOR" >> $GITHUB_OUTPUT
+          echo "PATCH=$PATCH" >> $GITHUB_OUTPUT
+          echo "TAG=$TAG" >> $GITHUB_OUTPUT
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Determine release type
+        id: release
+        run: |
+          if [[ "${{ github.event_name }}" == "release" && "${{ github.event.release.prerelease }}" == "true" ]]; then
+            echo "TYPE=SDK_VERSION_TYPE_PRE_RELEASE" >> $GITHUB_OUTPUT
+          else
+            echo "TYPE=SDK_VERSION_TYPE_RELEASE" >> $GITHUB_OUTPUT
+          fi
+
       - name: Update library.json version
         run: |
-          echo "Updating version to ${{ steps.version.outputs.VERSION }}"
-          sed -i 's/"version": "[^"]*"/"version": "${{ steps.version.outputs.VERSION }}"/' lib/lilka/library.json
-          echo "Updated library.json:"
+          echo "Updating version to ${{ steps.extract.outputs.VERSION }}"
+          sed -i 's/"version": "[^"]*"/"version": "${{ steps.extract.outputs.VERSION }}"/' lib/lilka/library.json
           cat lib/lilka/library.json
+
+      - name: Generate sdk_version_auto_gen.h
+        run: |
+          cat > lib/lilka/src/lilka/sdk_version_auto_gen.h <<EOF
+          #pragma once
+          #ifndef VERSION_AUTO_GEN_H
+          #define VERSION_AUTO_GEN_H
+          #define SDK_VERSION_MAJOR ${{ steps.extract.outputs.MAJOR }}
+          #define SDK_VERSION_MINOR ${{ steps.extract.outputs.MINOR }}
+          #define SDK_VERSION_PATCH ${{ steps.extract.outputs.PATCH }}
+          #define SDK_VERSION_TYPE  ${{ steps.release.outputs.TYPE }}
+          #endif // VERSION_AUTO_GEN_H
+          EOF
+          cat lib/lilka/src/lilka/sdk_version_auto_gen.h
 
   publish-to-pio:
     needs: update-version

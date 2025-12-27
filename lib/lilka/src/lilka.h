@@ -15,6 +15,7 @@
 #include "lilka/resources.h"
 #include "lilka/fmath.h"
 #include "lilka/audio.h"
+#include "lilka/version.h"
 
 namespace lilka {
 /// Ініціалізація Лілки
