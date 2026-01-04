@@ -2,6 +2,13 @@
 
 #include <I2S.h>
 
+#define LILKA_SOUND_NVS_NAMESPACE "sound"
+#define LILKA_SOUND_NVS_VOLUME_LEVEL_KEY "volumeLevel"
+#define LILKA_SOUND_NVS_WELCOME_SOUND_KEY "startupSound"
+
+#define LILKA_SOUND_NVS_DEFAULT_VOLUME 100
+#define LILKA_SOUND_NVS_DEFAULT_WELCOME_SOUND true
+
 namespace lilka {
 
 /// Клас для ініціалізації аудіо.
@@ -14,29 +21,23 @@ public:
     Audio();
     /// Налаштоувує піни для I2S і відтворює тестовий звук.
     /// \warning Цей метод викликається автоматично при виклику `lilka::begin()`.
-    void begin();
+    static void begin();
     /// Відтворює звук вітання, якщо він увімкнений в налаштуваннях.
-    void playStartupSound();
+    static void playStartupSound();
     /// Налаштувує піни для I2S.
     /// Цей метод варто викликати перед викликом `i2s_driver_install()`.
-    void initPins();
+    static void initPins();
     /// Регулює гучність до рівня, збереженого в налаштуваннях
     /// Цей метод бажано викликати перед `i2s_write`.
-    void adjustVolume(void* buffer, size_t size, int bitsPerSample);
+    static void adjustVolume(void* buffer, size_t size, int bitsPerSample, uint32_t volumeLevel);
     /// Повертає рівень гучності
-    int getVolume();
+    static int getVolume();
     /// Встановлює рівень гучності
-    void setVolume(int level);
+    static void setVolume(int level);
     /// Перевіряє чи увімкнено звук вітання
-    bool getStartupSoundEnabled();
+    static uint32_t getStartupSoundEnabled();
     /// Вмикає чи вимикає звук вітання
-    void setStartupSoundEnabled(bool enable);
-
-private:
-    /// Глобальна гучність
-    uint32_t volumeLevel = 100;
-    bool startupSound = true;
-    void saveSettings();
+    static void setStartupSoundEnabled(bool enable);
 };
 
 extern Audio audio;

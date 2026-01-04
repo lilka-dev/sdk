@@ -6,6 +6,11 @@
 #include <freertos/task.h>
 #include <freertos/semphr.h>
 
+
+#define LILKA_BUZZER_NVS_NAMESPACE "sound"                   // note: same as audio.h
+#define LILKA_BUZZER_NVS_WELCOME_SOUND_KEY "startupBuzzer"
+#define LILKA_BUZZER_NVS_DEFAULT_WELCOME_SOUND true
+
 namespace lilka {
 
 // Ідею взято з https://github.com/robsoncouto/arduino-songs/blob/master/doom/doom.ino
@@ -88,19 +93,16 @@ public:
     /// Відтворити мелодію з DOOM - E1M1, At Doom's Gate (Bobby Prince).
     void playDoom();
     /// Перевірити чи увімкнено звук вітання
-    bool getStartupBuzzerEnabled();
+    static bool getStartupBuzzerEnabled();
     /// Увімкнути чи вимкнути звук вітання
-    void setStartupBuzzerEnabled(bool enable);
+    static void setStartupBuzzerEnabled(bool enable);
 
     static void melodyTask(void* arg);
 
 private:
     // cppcheck-suppress unusedPrivateFunction
     void _stop();
-    void saveSettings();
-
-    bool startupBuzzer = true;
-
+    
     SemaphoreHandle_t buzzerMutex;
     TaskHandle_t melodyTaskHandle;
     Tone* currentMelody;
