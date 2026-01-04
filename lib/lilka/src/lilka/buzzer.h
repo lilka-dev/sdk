@@ -6,9 +6,8 @@
 #include <freertos/task.h>
 #include <freertos/semphr.h>
 
-
-#define LILKA_BUZZER_NVS_NAMESPACE "sound"                   // note: same as audio.h
-#define LILKA_BUZZER_NVS_WELCOME_SOUND_KEY "startupBuzzer"
+#define LILKA_BUZZER_NVS_NAMESPACE             "sound" // note: same as audio.h
+#define LILKA_BUZZER_NVS_WELCOME_SOUND_KEY     "startupBuzzer"
 #define LILKA_BUZZER_NVS_DEFAULT_WELCOME_SOUND true
 
 namespace lilka {
@@ -102,7 +101,7 @@ public:
 private:
     // cppcheck-suppress unusedPrivateFunction
     void _stop();
-    
+
     SemaphoreHandle_t buzzerMutex;
     TaskHandle_t melodyTaskHandle;
     Tone* currentMelody;

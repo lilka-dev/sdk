@@ -9,7 +9,6 @@ namespace lilka {
 Audio::Audio() {
 }
 
-
 // Thing to be run in parralel thread performing actual output
 void welcomePlay(void* arg) {
 #if LILKA_VERSION == 1
@@ -35,15 +34,14 @@ void welcomePlay(void* arg) {
 #endif
 }
 
-
 void Audio::begin() {
     initPins();
 
     I2S.setAllPins(LILKA_I2S_BCLK, LILKA_I2S_LRCK, LILKA_I2S_DOUT, LILKA_I2S_DOUT, -1);
 
-    #ifndef LILKA_NO_AUDIO_HELLO
+#ifndef LILKA_NO_AUDIO_HELLO
     if (getStartupSoundEnabled()) playStartupSound();
-    #endif
+#endif
 }
 
 void Audio::playStartupSound() {
@@ -92,28 +90,27 @@ void Audio::adjustVolume(void* buffer, size_t size, int bitsPerSample, uint32_t 
     }
 }
 
-
 // Getters/setters to work with NVS directly
 // Single storage, less chance to create stupid problems with synchronising it's data
 int Audio::getVolume() {
     Preferences prefs;
-    
+
     prefs.begin(LILKA_SOUND_NVS_NAMESPACE, true);
 
-    uint32_t volume = prefs.getUInt(LILKA_SOUND_NVS_VOLUME_LEVEL_KEY,  LILKA_SOUND_NVS_DEFAULT_VOLUME);
-    
-    prefs.end();    
+    uint32_t volume = prefs.getUInt(LILKA_SOUND_NVS_VOLUME_LEVEL_KEY, LILKA_SOUND_NVS_DEFAULT_VOLUME);
+
+    prefs.end();
     return volume;
 }
 
 void Audio::setVolume(int level) {
     Preferences prefs;
-    
+
     prefs.begin(LILKA_SOUND_NVS_NAMESPACE, false);
 
-    prefs.putUInt(LILKA_SOUND_NVS_VOLUME_LEVEL_KEY,  level);
-    
-    prefs.end();    
+    prefs.putUInt(LILKA_SOUND_NVS_VOLUME_LEVEL_KEY, level);
+
+    prefs.end();
 }
 
 uint32_t Audio::getStartupSoundEnabled() {
@@ -121,18 +118,18 @@ uint32_t Audio::getStartupSoundEnabled() {
 
     prefs.begin(LILKA_SOUND_NVS_NAMESPACE, true);
     bool startupSound = prefs.getBool(LILKA_SOUND_NVS_WELCOME_SOUND_KEY, LILKA_SOUND_NVS_DEFAULT_WELCOME_SOUND);
-    
+
     prefs.end();
     return startupSound;
 }
 
 void Audio::setStartupSoundEnabled(bool enable) {
     Preferences prefs;
-    
+
     prefs.begin(LILKA_SOUND_NVS_NAMESPACE, false);
-    prefs.putBool(LILKA_SOUND_NVS_WELCOME_SOUND_KEY,  enable);
-    
-    prefs.end();    
+    prefs.putBool(LILKA_SOUND_NVS_WELCOME_SOUND_KEY, enable);
+
+    prefs.end();
 }
 
 Audio audio;

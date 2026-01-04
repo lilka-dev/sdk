@@ -2,11 +2,11 @@
 
 #include <I2S.h>
 
-#define LILKA_SOUND_NVS_NAMESPACE "sound"
-#define LILKA_SOUND_NVS_VOLUME_LEVEL_KEY "volumeLevel"
-#define LILKA_SOUND_NVS_WELCOME_SOUND_KEY "startupSound"
+#define LILKA_SOUND_NVS_NAMESPACE             "sound"
+#define LILKA_SOUND_NVS_VOLUME_LEVEL_KEY      "volumeLevel"
+#define LILKA_SOUND_NVS_WELCOME_SOUND_KEY     "startupSound"
 
-#define LILKA_SOUND_NVS_DEFAULT_VOLUME 100
+#define LILKA_SOUND_NVS_DEFAULT_VOLUME        100
 #define LILKA_SOUND_NVS_DEFAULT_WELCOME_SOUND true
 
 namespace lilka {
