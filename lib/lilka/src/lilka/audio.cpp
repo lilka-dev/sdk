@@ -2,36 +2,51 @@
 #include "config.h"
 #include "ping.h"
 #include "Preferences.h"
+#include "serial.h"
 
 namespace lilka {
 
 Audio::Audio() {
 }
 
-void ping_task(void* arg);
+// Thing to be run in parralel thread performing actual output
+void welcomePlay(void* arg) {
+#if LILKA_VERSION == 1
+    serial.err("This part of code should never be called. Audio not supported for this version of lilka");
+#elif LILKA_VERSION == 2
+    // Signed 16-bit PCM
+    const int16_t* ping = reinterpret_cast<const int16_t*>(ping_raw);
+    auto volumeLevel = audio.getVolume();
+    vTaskDelay(400 / portTICK_PERIOD_MS);
+
+    int16_t buf;
+    I2S.begin(I2S_PHILIPS_MODE, 22050, 16);
+    for (int i = 0; i < ping_raw_size / 2; i++) {
+        memcpy(&buf, &ping[i], 2);
+        lilka::audio.adjustVolume(&buf, 2, 16, volumeLevel);
+
+        I2S.write(buf >> 2);
+        I2S.write(buf >> 2);
+    }
+    I2S.end();
+
+    vTaskDelete(NULL);
+#endif
+}
 
 void Audio::begin() {
-#if LILKA_VERSION == 1
-    serial.err("Audio not supported in this version of lilka. Try to use Buzzer instead");
-#elif LILKA_VERSION == 2
-
     initPins();
 
     I2S.setAllPins(LILKA_I2S_BCLK, LILKA_I2S_LRCK, LILKA_I2S_DOUT, LILKA_I2S_DOUT, -1);
 
-    if (startupSound) xTaskCreatePinnedToCore(ping_task, "ping_task", 4096, NULL, 1, NULL, 0);
+#ifndef LILKA_NO_AUDIO_HELLO
+    if (getStartupSoundEnabled()) playStartupSound();
 #endif
 }
 
 void Audio::playStartupSound() {
-#if LILKA_VERSION == 1
-    serial.err("Audio not supported in this version of lilka. Try to use Buzzer instead");
-#elif LILKA_VERSION == 2
-    Preferences prefs;
-    prefs.begin("sound", true);
-    volumeLevel = prefs.getUInt("volumeLevel", 100);
-    startupSound = prefs.getBool("startupSound", true);
-    prefs.end();
+#if LILKA_VERSION == 2
+    xTaskCreatePinnedToCore(welcomePlay, "welcomePlay", 4096, NULL, 1, NULL, 0);
 #endif
 }
 
@@ -47,7 +62,7 @@ void Audio::initPins() {
     }
 }
 
-void Audio::adjustVolume(void* buffer, size_t size, int bitsPerSample) {
+void Audio::adjustVolume(void* buffer, size_t size, int bitsPerSample, uint32_t volumeLevel) {
     int gain = (volumeLevel * 1024.0) / 100.0;
     int samples = size / (bitsPerSample / 8);
 
@@ -75,58 +90,46 @@ void Audio::adjustVolume(void* buffer, size_t size, int bitsPerSample) {
     }
 }
 
+// Getters/setters to work with NVS directly
+// Single storage, less chance to create stupid problems with synchronising it's data
 int Audio::getVolume() {
-    return volumeLevel;
+    Preferences prefs;
+
+    prefs.begin(LILKA_SOUND_NVS_NAMESPACE, true);
+
+    uint32_t volume = prefs.getUInt(LILKA_SOUND_NVS_VOLUME_LEVEL_KEY, LILKA_SOUND_NVS_DEFAULT_VOLUME);
+
+    prefs.end();
+    return volume;
 }
 
 void Audio::setVolume(int level) {
-    volumeLevel = level;
-    saveSettings();
+    Preferences prefs;
+
+    prefs.begin(LILKA_SOUND_NVS_NAMESPACE, false);
+
+    prefs.putUInt(LILKA_SOUND_NVS_VOLUME_LEVEL_KEY, level);
+
+    prefs.end();
 }
 
-bool Audio::getStartupSoundEnabled() {
+uint32_t Audio::getStartupSoundEnabled() {
+    Preferences prefs;
+
+    prefs.begin(LILKA_SOUND_NVS_NAMESPACE, true);
+    bool startupSound = prefs.getBool(LILKA_SOUND_NVS_WELCOME_SOUND_KEY, LILKA_SOUND_NVS_DEFAULT_WELCOME_SOUND);
+
+    prefs.end();
     return startupSound;
 }
 
 void Audio::setStartupSoundEnabled(bool enable) {
-    startupSound = enable;
-    saveSettings();
-}
-
-void Audio::saveSettings() {
     Preferences prefs;
-    prefs.begin("sound", false);
-    prefs.putUInt("volumeLevel", lilka::audio.volumeLevel);
-    prefs.putBool("startupSound", startupSound);
+
+    prefs.begin(LILKA_SOUND_NVS_NAMESPACE, false);
+    prefs.putBool(LILKA_SOUND_NVS_WELCOME_SOUND_KEY, enable);
+
     prefs.end();
-}
-
-void ping_task(void* arg) {
-#if LILKA_VERSION == 1
-    serial.err("This part of code should never be called. Audio not supported for this version of lilka");
-#elif LILKA_VERSION == 2
-#    ifndef LILKA_NO_AUDIO_HELLO
-
-    // Signed 16-bit PCM
-    const int16_t* ping = reinterpret_cast<const int16_t*>(ping_raw);
-
-    vTaskDelay(400 / portTICK_PERIOD_MS);
-
-    int16_t buf;
-    I2S.begin(I2S_PHILIPS_MODE, 22050, 16);
-    for (int i = 0; i < ping_raw_size / 2; i++) {
-        memcpy(&buf, &ping[i], 2);
-        lilka::audio.adjustVolume(&buf, 2, 16);
-
-        I2S.write(buf >> 2);
-        I2S.write(buf >> 2);
-    }
-    I2S.end();
-
-#    endif
-
-    vTaskDelete(NULL);
-#endif
 }
 
 Audio audio;

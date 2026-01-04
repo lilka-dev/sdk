@@ -21,17 +21,11 @@ void Buzzer::begin() {
     serial.err("Buzzer is not supported on this board");
     return;
 #else
-
-    Preferences prefs;
-    prefs.begin("sound", true);
-    startupBuzzer = prefs.getBool("startupBuzzer", true);
-    prefs.end();
-
     _stop();
     pinMode(LILKA_BUZZER, OUTPUT);
 #    ifndef LILKA_NO_BUZZER_HELLO
     const Tone helloTune[] = {{NOTE_C3, 8}, {NOTE_C4, 8}, {NOTE_C5, 8}, {NOTE_C7, 4}, {0, 8}, {NOTE_C6, 4}};
-    if (startupBuzzer) playMelody(helloTune, sizeof(helloTune) / sizeof(Tone), 160);
+    if (getStartupBuzzerEnabled()) playMelody(helloTune, sizeof(helloTune) / sizeof(Tone), 160);
 #    endif
 #endif
 }
@@ -262,18 +256,17 @@ void Buzzer::playDoom() {
 }
 
 bool Buzzer::getStartupBuzzerEnabled() {
+    Preferences prefs;
+    prefs.begin(LILKA_BUZZER_NVS_NAMESPACE, true);
+    bool startupBuzzer = prefs.getBool(LILKA_BUZZER_NVS_WELCOME_SOUND_KEY, true);
+    prefs.end();
     return startupBuzzer;
 }
 
 void Buzzer::setStartupBuzzerEnabled(bool enable) {
-    startupBuzzer = enable;
-    saveSettings();
-}
-
-void Buzzer::saveSettings() {
     Preferences prefs;
-    prefs.begin("sound", false);
-    prefs.putBool("startupBuzzer", startupBuzzer);
+    prefs.begin(LILKA_BUZZER_NVS_NAMESPACE, false);
+    prefs.putBool(LILKA_BUZZER_NVS_WELCOME_SOUND_KEY, enable);
     prefs.end();
 }
 
