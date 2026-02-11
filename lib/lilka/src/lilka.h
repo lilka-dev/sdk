@@ -13,9 +13,10 @@
 #include "lilka/multiboot.h"
 #include "lilka/sys.h"
 #include "lilka/resources.h"
+#include "lilka/stringutils.h"
 #include "lilka/fmath.h"
 #include "lilka/audio.h"
-#include "lilka/version.h"
+#include "lilka/sdk.h"
 
 namespace lilka {
 /// Ініціалізація Лілки
