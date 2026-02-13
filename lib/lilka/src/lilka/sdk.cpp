@@ -3,10 +3,6 @@
 namespace lilka {
 LilkaSDK::LilkaSDK() {
     // Prepare all data at once and reuse
-    version = {
-        .major = SDK_VERSION_MAJOR, .minor = SDK_VERSION_MINOR, .patch = SDK_VERSION_PATCH, .vtype = SDK_VERSION_TYPE
-    };
-
     char tmpBuffer[260] = {};
     sprintf(
         tmpBuffer,
