@@ -319,7 +319,7 @@ const String FileUtils::joinPath(const String& lPath, const String& rPath) {
 
 const String FileUtils::getParentDirectory(const String& path) {
     String cleanPath = path;
-    // Remove trailing '/' if it exists
+    // Remove trailing '/' if it exists 
     if (cleanPath.endsWith("/")) {
         cleanPath.remove(cleanPath.length() - 1);
     }
@@ -329,6 +329,10 @@ const String FileUtils::getParentDirectory(const String& path) {
         // No '/' found, assume it's at the top level
         return "/";
     }
+    // If last slash is single character, return root
+    if (lastSlash == 0)
+       return "/";
+
     // Return the substring up to the last '/'
     return cleanPath.substring(0, lastSlash);
 }
