@@ -35,7 +35,6 @@ private:
         {.major = SDK_VERSION_MAJOR, .minor = SDK_VERSION_MINOR, .patch = SDK_VERSION_PATCH, .vtype = SDK_VERSION_TYPE};
     ;
     String versionStr;
-    version_type_t versionType;
 };
 
 extern LilkaSDK sdk;

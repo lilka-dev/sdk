@@ -23,10 +23,6 @@ const String& LilkaSDK::getVersionStr() {
     return versionStr;
 }
 
-version_type_t LilkaSDK::getVersionType() {
-    return versionType;
-}
-
 char SDK_VERSION_TYPE_ACSTR[][12] = {"Dev", "Pre-Release", "Release"};
 LilkaSDK sdk;
 } // namespace lilka
