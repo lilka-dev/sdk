@@ -299,9 +299,7 @@ static int elf_load_sections(lilka_elf_t* elf, const uint8_t* pbuf) {
                 elf->sec[LILKA_ELF_SEC_DRLRO].size = shdr[i].size;
                 elf->sec[LILKA_ELF_SEC_DRLRO].offset = shdr[i].offset;
             }
-        } else if (shdr[i].type == LILKA_SHT_NOBITS &&
-                   (shdr[i].flags & (LILKA_SHF_ALLOC | LILKA_SHF_WRITE)) == (LILKA_SHF_ALLOC | LILKA_SHF_WRITE) &&
-                   strcmp(".bss", name) == 0) {
+        } else if (shdr[i].type == LILKA_SHT_NOBITS && (shdr[i].flags & (LILKA_SHF_ALLOC | LILKA_SHF_WRITE)) == (LILKA_SHF_ALLOC | LILKA_SHF_WRITE) && strcmp(".bss", name) == 0) {
             elf->sec[LILKA_ELF_SEC_BSS].v_addr = shdr[i].addr;
             elf->sec[LILKA_ELF_SEC_BSS].size = shdr[i].size;
             elf->sec[LILKA_ELF_SEC_BSS].offset = shdr[i].offset;

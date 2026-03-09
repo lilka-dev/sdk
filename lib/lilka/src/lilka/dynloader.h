@@ -126,7 +126,7 @@ typedef struct {
 #define R_XTENSA_RELATIVE 5
 
 /* Alignment macro */
-#define LILKA_ELF_ALIGN(a, s) (((a) + ((s) - 1)) & ~((s) - 1))
+#define LILKA_ELF_ALIGN(a, s) (((a) + ((s)-1)) & ~((s)-1))
 
 /* ── ELF section descriptor ─────────────────────────────────────────────── */
 
