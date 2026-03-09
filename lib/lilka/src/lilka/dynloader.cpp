@@ -137,17 +137,14 @@ static void elf_free(void* ptr) {
  */
 
 /// Word-aligned copy to IRAM. dst must be 4-byte aligned. src may be unaligned.
-static void iram_cpy(void *dst, const void *src, size_t n) {
-    volatile uint32_t *d = (volatile uint32_t *)dst;
-    const uint8_t *s = (const uint8_t *)src;
+static void iram_cpy(void* dst, const void* src, size_t n) {
+    volatile uint32_t* d = reinterpret_cast<volatile uint32_t*>(dst);
+    const uint8_t* s = reinterpret_cast<const uint8_t*>(src);
     size_t words = n / 4;
-    size_t tail  = n % 4;
+    size_t tail = n % 4;
 
     for (size_t i = 0; i < words; i++) {
-        uint32_t w = (uint32_t)s[0]
-                   | ((uint32_t)s[1] << 8)
-                   | ((uint32_t)s[2] << 16)
-                   | ((uint32_t)s[3] << 24);
+        uint32_t w = (uint32_t)s[0] | ((uint32_t)s[1] << 8) | ((uint32_t)s[2] << 16) | ((uint32_t)s[3] << 24);
         *d++ = w;
         s += 4;
     }
@@ -160,10 +157,9 @@ static void iram_cpy(void *dst, const void *src, size_t n) {
 }
 
 /// Word-aligned fill for IRAM. ptr must be 4-byte aligned.
-static void iram_set(void *ptr, uint8_t val, size_t n) {
-    volatile uint32_t *d = (volatile uint32_t *)ptr;
-    uint32_t fill = (uint32_t)val | ((uint32_t)val << 8)
-                  | ((uint32_t)val << 16) | ((uint32_t)val << 24);
+static void iram_set(void* ptr, uint8_t val, size_t n) {
+    volatile uint32_t* d = reinterpret_cast<volatile uint32_t*>(ptr);
+    uint32_t fill = (uint32_t)val | ((uint32_t)val << 8) | ((uint32_t)val << 16) | ((uint32_t)val << 24);
     size_t words = (n + 3) / 4;
     for (size_t i = 0; i < words; i++)
         d[i] = fill;
@@ -180,7 +176,7 @@ static inline bool is_iram_addr(uintptr_t addr) {
 /// Only applies when .text is in PSRAM data-bus range (< 0x40000000).
 /// IRAM addresses (>= 0x40000000) are already on the instruction bus — no remapping needed.
 static inline uintptr_t remap_text(lilka_elf_t* elf, uintptr_t sym) {
-    lilka_elf_sec_t* sec = &elf->sec[LILKA_ELF_SEC_TEXT];
+    const lilka_elf_sec_t* sec = &elf->sec[LILKA_ELF_SEC_TEXT];
     if (sym >= sec->addr && sym < (sec->addr + sec->size)) {
 #if LILKA_TEXT_OFFSET != 0
         /*
@@ -216,16 +212,16 @@ static uintptr_t elf_map_sym(lilka_elf_t* elf, uintptr_t sym) {
 static int elf_arch_relocate(
     lilka_elf_t* elf, const lilka_elf32_rela_t* rela, const lilka_elf32_sym_t* sym, uint32_t addr
 ) {
-    uint32_t* where = (uint32_t*)elf_map_sym(elf, rela->offset);
+    uint32_t* where = reinterpret_cast<uint32_t*>(elf_map_sym(elf, rela->offset));
     if (!where) {
         lilka::serial.log("dynloader: reloc where=NULL offset=0x%x", rela->offset);
         return -EINVAL;
     }
 
     switch (LILKA_ELF_R_TYPE(rela->info)) {
-    case R_XTENSA_RELATIVE:
-        *where = remap_text(elf, elf_map_sym(elf, *where));
-        break;
+        case R_XTENSA_RELATIVE:
+            *where = remap_text(elf, elf_map_sym(elf, *where));
+            break;
         case R_XTENSA_RTLD:
             /* Runtime linker marker - nothing to do */
             break;
@@ -270,9 +266,9 @@ static void elf_flush_cache(void) {
 /* ── Section loading (bus-address mirror mode for ESP32-S3) ─────────────── */
 
 static int elf_load_sections(lilka_elf_t* elf, const uint8_t* pbuf) {
-    const lilka_elf32_hdr_t* ehdr = (const lilka_elf32_hdr_t*)pbuf;
-    const lilka_elf32_shdr_t* shdr = (const lilka_elf32_shdr_t*)(pbuf + ehdr->shoff);
-    const char* shstrtab = (const char*)pbuf + shdr[ehdr->shstrndx].offset;
+    const lilka_elf32_hdr_t* ehdr = reinterpret_cast<const lilka_elf32_hdr_t*>(pbuf);
+    const lilka_elf32_shdr_t* shdr = reinterpret_cast<const lilka_elf32_shdr_t*>(pbuf + ehdr->shoff);
+    const char* shstrtab = reinterpret_cast<const char*>(pbuf) + shdr[ehdr->shstrndx].offset;
 
     /* Find relevant sections */
     for (uint32_t i = 0; i < ehdr->shnum; i++) {
@@ -320,7 +316,7 @@ static int elf_load_sections(lilka_elf_t* elf, const uint8_t* pbuf) {
 
     /* Allocate text section — align allocation size to 4 bytes */
     uint32_t text_alloc_size = LILKA_ELF_ALIGN(elf->sec[LILKA_ELF_SEC_TEXT].size, 4);
-    elf->ptext = (unsigned char*)elf_malloc(text_alloc_size, true);
+    elf->ptext = static_cast<unsigned char*>(elf_malloc(text_alloc_size, true));
     if (!elf->ptext) {
         lilka::serial.log("dynloader: failed to alloc %u bytes for .text", text_alloc_size);
         return -ENOMEM;
@@ -338,7 +334,7 @@ static int elf_load_sections(lilka_elf_t* elf, const uint8_t* pbuf) {
     uint32_t data_size = elf->sec[LILKA_ELF_SEC_DATA].size + elf->sec[LILKA_ELF_SEC_RODATA].size +
                          elf->sec[LILKA_ELF_SEC_BSS].size + elf->sec[LILKA_ELF_SEC_DRLRO].size;
     if (data_size) {
-        elf->pdata = (unsigned char*)elf_malloc(data_size, false);
+        elf->pdata = static_cast<unsigned char*>(elf_malloc(data_size, false));
         if (!elf->pdata) {
             lilka::serial.log("dynloader: failed to alloc %u bytes for data", data_size);
             elf_free(elf->ptext);
@@ -350,11 +346,9 @@ static int elf_load_sections(lilka_elf_t* elf, const uint8_t* pbuf) {
     /* Copy .text into executable memory — use IRAM-safe copy if needed */
     elf->sec[LILKA_ELF_SEC_TEXT].addr = (uintptr_t)elf->ptext;
     if (text_in_iram) {
-        iram_cpy(elf->ptext, pbuf + elf->sec[LILKA_ELF_SEC_TEXT].offset,
-                 elf->sec[LILKA_ELF_SEC_TEXT].size);
+        iram_cpy(elf->ptext, pbuf + elf->sec[LILKA_ELF_SEC_TEXT].offset, elf->sec[LILKA_ELF_SEC_TEXT].size);
     } else {
-        memcpy(elf->ptext, pbuf + elf->sec[LILKA_ELF_SEC_TEXT].offset,
-               elf->sec[LILKA_ELF_SEC_TEXT].size);
+        memcpy(elf->ptext, pbuf + elf->sec[LILKA_ELF_SEC_TEXT].offset, elf->sec[LILKA_ELF_SEC_TEXT].size);
     }
 
     /* Copy data sections */
@@ -384,7 +378,7 @@ static int elf_load_sections(lilka_elf_t* elf, const uint8_t* pbuf) {
 
     /* Set entry point (remap to instruction bus for execution) */
     uintptr_t entry_addr = ehdr->entry + elf->sec[LILKA_ELF_SEC_TEXT].addr - elf->sec[LILKA_ELF_SEC_TEXT].v_addr;
-    elf->entry = (int (*)(int, char*[]))remap_text(elf, entry_addr);
+    elf->entry = reinterpret_cast<int (*)(int, char*[])>(remap_text(elf, entry_addr));
 
     return 0;
 }
@@ -400,7 +394,7 @@ int lilka_elf_init(lilka_elf_t* elf) {
 int lilka_elf_relocate(lilka_elf_t* elf, const uint8_t* pbuf, size_t size) {
     if (!elf || !pbuf || size < sizeof(lilka_elf32_hdr_t)) return -EINVAL;
 
-    const lilka_elf32_hdr_t* ehdr = (const lilka_elf32_hdr_t*)pbuf;
+    const lilka_elf32_hdr_t* ehdr = reinterpret_cast<const lilka_elf32_hdr_t*>(pbuf);
 
     /* Validate ELF magic */
     if (ehdr->ident[0] != 0x7f || ehdr->ident[1] != 'E' || ehdr->ident[2] != 'L' || ehdr->ident[3] != 'F') {
@@ -421,15 +415,15 @@ int lilka_elf_relocate(lilka_elf_t* elf, const uint8_t* pbuf, size_t size) {
     lilka::serial.log("dynloader: entry=%p", elf->entry);
 
     /* Process relocations */
-    const lilka_elf32_shdr_t* shdr = (const lilka_elf32_shdr_t*)(pbuf + ehdr->shoff);
-    const char* shstrtab = (const char*)pbuf + shdr[ehdr->shstrndx].offset;
+    const lilka_elf32_shdr_t* shdr = reinterpret_cast<const lilka_elf32_shdr_t*>(pbuf + ehdr->shoff);
 
     for (uint32_t i = 0; i < ehdr->shnum; i++) {
         if (shdr[i].type == LILKA_SHT_RELA) {
             uint32_t nr_reloc = shdr[i].size / sizeof(lilka_elf32_rela_t);
-            const lilka_elf32_rela_t* rela = (const lilka_elf32_rela_t*)(pbuf + shdr[i].offset);
-            const lilka_elf32_sym_t* symtab = (const lilka_elf32_sym_t*)(pbuf + shdr[shdr[i].link].offset);
-            const char* strtab = (const char*)(pbuf + shdr[shdr[shdr[i].link].link].offset);
+            const lilka_elf32_rela_t* rela = reinterpret_cast<const lilka_elf32_rela_t*>(pbuf + shdr[i].offset);
+            const lilka_elf32_sym_t* symtab =
+                reinterpret_cast<const lilka_elf32_sym_t*>(pbuf + shdr[shdr[i].link].offset);
+            const char* strtab = reinterpret_cast<const char*>(pbuf + shdr[shdr[shdr[i].link].link].offset);
 
             for (uint32_t j = 0; j < nr_reloc; j++) {
                 lilka_elf32_rela_t rela_buf;
@@ -477,8 +471,8 @@ int lilka_elf_relocate(lilka_elf_t* elf, const uint8_t* pbuf, size_t size) {
         }
         /* Parse .dynsym for exported symbols */
         else if (shdr[i].type == LILKA_SHT_DYNSYM) {
-            const lilka_elf32_sym_t* dsymtab = (const lilka_elf32_sym_t*)(pbuf + shdr[i].offset);
-            const char* dstrtab = (const char*)(pbuf + shdr[shdr[i].link].offset);
+            const lilka_elf32_sym_t* dsymtab = reinterpret_cast<const lilka_elf32_sym_t*>(pbuf + shdr[i].offset);
+            const char* dstrtab = reinterpret_cast<const char*>(pbuf + shdr[shdr[i].link].offset);
             uint32_t nsyms = shdr[i].size / sizeof(lilka_elf32_sym_t);
 
             /* Count global functions */
@@ -491,7 +485,7 @@ int lilka_elf_relocate(lilka_elf_t* elf, const uint8_t* pbuf, size_t size) {
             }
 
             if (count) {
-                elf->symtab = (lilka_dynsym_t*)elf_malloc(count * sizeof(lilka_dynsym_t), false);
+                elf->symtab = static_cast<lilka_dynsym_t*>(elf_malloc(count * sizeof(lilka_dynsym_t), false));
                 if (!elf->symtab) return -ENOMEM;
                 memset(elf->symtab, 0, count * sizeof(lilka_dynsym_t));
 
@@ -501,10 +495,10 @@ int lilka_elf_relocate(lilka_elf_t* elf, const uint8_t* pbuf, size_t size) {
                         LILKA_ELF_ST_TYPE(dsymtab[j].info) == LILKA_STT_FUNC) {
                         /* Resolve address within loaded sections */
                         elf->symtab[idx].addr =
-                            (void*)(elf->ptext + dsymtab[j].value - elf->sec[LILKA_ELF_SEC_TEXT].v_addr);
+                            static_cast<void*>(elf->ptext + dsymtab[j].value - elf->sec[LILKA_ELF_SEC_TEXT].v_addr);
                         /* Copy name */
                         size_t len = strlen(dstrtab + dsymtab[j].name) + 1;
-                        char* nm = (char*)elf_malloc(len, false);
+                        char* nm = static_cast<char*>(elf_malloc(len, false));
                         if (!nm) {
                             elf->sym_count = idx;
                             return -ENOMEM;
@@ -545,7 +539,8 @@ void lilka_elf_deinit(lilka_elf_t* elf) {
     if (elf->sym_count && elf->symtab) {
         for (int i = 0; i < elf->sym_count; i++) {
             if (elf->symtab[i].name) {
-                elf_free((void*)elf->symtab[i].name);
+                // cppcheck-suppress cstyleCast
+                elf_free(const_cast<char*>(elf->symtab[i].name));
             }
         }
         elf_free(elf->symtab);
@@ -576,7 +571,7 @@ int lilka_dynloader_run(const char* path, int argc, char* argv[]) {
         return -EIO;
     }
 
-    uint8_t* buf = (uint8_t*)elf_malloc(fsize, false);
+    uint8_t* buf = static_cast<uint8_t*>(elf_malloc(fsize, false));
     if (!buf) {
         fclose(f);
         lilka::serial.log("dynloader: failed to alloc %ld bytes for file", fsize);
@@ -695,7 +690,7 @@ int DynLoader::load(const char* path) {
         return -EIO;
     }
 
-    fileData = (uint8_t*)elf_malloc(fsize, false);
+    fileData = static_cast<uint8_t*>(elf_malloc(fsize, false));
     if (!fileData) {
         fclose(f);
         errorMsg = "Not enough memory for file";
