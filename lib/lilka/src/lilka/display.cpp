@@ -45,7 +45,6 @@ void Display::begin() {
 #endif
     setFont(FONT_10x20);
     setUTF8Print(true);
-    fillScreen(lilka::colors::Black);
     serial.log("display ok");
 }
 
