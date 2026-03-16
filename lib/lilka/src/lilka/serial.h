@@ -69,6 +69,7 @@ private:
 
     // Storage and mutex for this storage
     SemaphoreHandle_t serialMutex = xSemaphoreCreateMutex();
+    char msgbuffer[TX_BUFFER_SIZE];
     std::queue<String> serialQueue;
 };
 
