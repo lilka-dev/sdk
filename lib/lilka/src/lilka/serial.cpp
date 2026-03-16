@@ -68,40 +68,43 @@ void SerialInterface::begin(unsigned long baud) {
 }
 
 void SerialInterface::log(const char* format, ...) {
-    char buffer[TX_BUFFER_SIZE];
     va_list args;
     va_start(args, format);
-    vsnprintf(buffer, sizeof(buffer), format, args);
+    lock();
+    vsnprintf(msgbuffer, sizeof(msgbuffer), format, args);
+    unlock();
     va_end(args);
     serial.lock();
     char millisCstr[11]; // 10 digits + 1 for null terminator
     snprintf(millisCstr, sizeof(millisCstr), "%010lu", millis());
-    serialQueue.push(String("[ ") + millisCstr + " ]" + String(LILKA_LOG_FORMAT) + buffer);
+    serialQueue.push(String("[ ") + millisCstr + " ]" + String(LILKA_LOG_FORMAT) + msgbuffer);
     serial.unlock();
 }
 
 void SerialInterface::err(const char* format, ...) {
-    char buffer[TX_BUFFER_SIZE];
     va_list args;
     va_start(args, format);
-    vsnprintf(buffer, sizeof(buffer), format, args);
+    lock();
+    vsnprintf(msgbuffer, sizeof(msgbuffer), format, args);
+    unlock();
     va_end(args);
     serial.lock();
     char millisCstr[11]; // 10 digits + 1 for null terminator
     snprintf(millisCstr, sizeof(millisCstr), "%010lu", millis());
-    serialQueue.push(String("[ ") + millisCstr + " ]" + String(LILKA_ERR_FORMAT) + buffer);
+    serialQueue.push(String("[ ") + millisCstr + " ]" + String(LILKA_ERR_FORMAT) + msgbuffer);
     serial.unlock();
 }
 void SerialInterface::idf(const char* format, ...) {
-    char buffer[TX_BUFFER_SIZE];
     va_list args;
     va_start(args, format);
-    vsnprintf(buffer, sizeof(buffer), format, args);
+    lock();
+    vsnprintf(msgbuffer, sizeof(msgbuffer), format, args);
+    unlock();
     va_end(args);
     serial.lock();
     char millisCstr[11]; // 10 digits + 1 for null terminator
     snprintf(millisCstr, sizeof(millisCstr), "%010lu", millis());
-    serialQueue.push(String("[ ") + millisCstr + " ]" + String(LILKA_IDF_FORMAT) + buffer);
+    serialQueue.push(String("[ ") + millisCstr + " ]" + String(LILKA_IDF_FORMAT) + msgbuffer);
     serial.unlock();
 }
 
