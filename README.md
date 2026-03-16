@@ -18,23 +18,6 @@ The `lilka` library simplifies working with all hardware components and lets you
 ### Prerequisites
 
 - [PlatformIO](https://platformio.org/install) (CLI or IDE plugin)
-- Lilka v2 board connected via USB
-
-### Installation
-
-1. Clone the repository:
-
-   ```bash
-   git clone https://github.com/lilka-dev/sdk.git
-   cd sdk
-   ```
-
-2. Build and upload using PlatformIO:
-
-   ```bash
-   cd lib/lilka
-   pio run -e v2 --target upload
-   ```
 
 ### Minimal Example
 
