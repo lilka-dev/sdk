@@ -14,8 +14,14 @@ constexpr uint16_t menu_icon_height = 24;
 typedef uint16_t const menu_icon_t[menu_icon_width * menu_icon_height]; // 24x24px icon (576*2 bytes)
 
 namespace lilka {
-
+// TODO: Split ui.h header on separate headers one per component. Implement abstract widget implementation
+// Callback function data type to be triggered on menu item any button(from list of activation buttons)
 typedef void (*PMenuItemCallback)(void*);
+// Helper to cast anything into Lilka Menu callback, note, should match PMenuItemCallback data type
+#define LILKA_MENU_CLBK_CAST(CLBK) reinterpret_cast<lilka::PMenuItemCallback>(CLBK)
+// Helper to cast any data to be passed inside Lilka Menu Callback
+#define LILKA_MENU_CLBK_DATA_CAST(CLBK_DATA) reinterpret_cast<void*>(CLBK_DATA)
+
 typedef struct {
     String title;
     const menu_icon_t* icon;
