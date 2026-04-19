@@ -43,16 +43,13 @@ jobs:
         id: extract
         run: |
           if [[ "${{ github.event_name }}" == "release" ]]; then
-            # Отримати тег без refs/tags/
             TAG="${GITHUB_REF#refs/tags/}"
             VERSION="${TAG#v}"
           else
-            # On push (workflow_run), use version 0.0.0
             TAG="v0.0.0"
             VERSION="0.0.0"
           fi
 
-          # Розбити на major/minor/patch
           IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
 
           echo "Extracted version: $VERSION"
@@ -71,26 +68,6 @@ jobs:
             echo "TYPE=SDK_VERSION_TYPE_RELEASE" >> $GITHUB_OUTPUT
           fi
 
-      - name: Update library.json version
-        run: |
-          echo "Updating version to ${{ steps.extract.outputs.VERSION }}"
-          sed -i 's/"version": "[^"]*"/"version": "${{ steps.extract.outputs.VERSION }}"/' lib/lilka/library.json
-          cat lib/lilka/library.json
-
-      - name: Generate sdk_version_auto_gen.h
-        run: |
-          cat > lib/lilka/src/lilka/sdk_version_auto_gen.h <<EOF
-          #pragma once
-          #ifndef VERSION_AUTO_GEN_H
-          #define VERSION_AUTO_GEN_H
-          #define SDK_VERSION_MAJOR ${{ steps.extract.outputs.MAJOR }}
-          #define SDK_VERSION_MINOR ${{ steps.extract.outputs.MINOR }}
-          #define SDK_VERSION_PATCH ${{ steps.extract.outputs.PATCH }}
-          #define SDK_VERSION_TYPE  ${{ steps.release.outputs.TYPE }}
-          #endif // VERSION_AUTO_GEN_H
-          EOF
-          cat lib/lilka/src/lilka/sdk_version_auto_gen.h
-
   publish-to-pio:
     needs: update-version
     if: github.event_name == 'release'
@@ -98,22 +75,44 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.x'
+
       - name: Install PlatformIO
         run: |
           python -m pip install --upgrade pip
           pip install platformio
+
       - name: Update library.json version
         run: |
           echo "Updating version to ${{ needs.update-version.outputs.version }}"
           sed -i 's/"version": "[^"]*"/"version": "${{ needs.update-version.outputs.version }}"/' lib/lilka/library.json
           cat lib/lilka/library.json
+
+      - name: Generate version_auto_gen.h
+        run: |
+          cat > lib/lilka/src/lilka/version_auto_gen.h << 'VERHEADER'
+#pragma once
+#ifndef VERSION_AUTO_GEN_H
+#define VERSION_AUTO_GEN_H
+
+#define SDK_VERSION_MAJOR ${{ needs.update-version.outputs.major }}
+#define SDK_VERSION_MINOR ${{ needs.update-version.outputs.minor }}
+#define SDK_VERSION_PATCH ${{ needs.update-version.outputs.patch }}
+#define SDK_VERSION_TYPE  ${{ needs.update-version.outputs.type }}
+
+#endif // VERSION_AUTO_GEN_H
+VERHEADER
+          echo "Generated version_auto_gen.h:"
+          cat lib/lilka/src/lilka/version_auto_gen.h
+
       - name: Login to PlatformIO
         run: |
           pio account login -u "${{ secrets.PIO_USERNAME }}" -p "${{ secrets.PIO_PASSWORD }}"
+
       - name: Publish to PlatformIO Registry
         run: |
           cd lib/lilka
@@ -127,10 +126,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+
       - name: Update library.json version
         run: |
           echo "Updating version to ${{ needs.update-version.outputs.version }}"
           sed -i 's/"version": "[^"]*"/"version": "${{ needs.update-version.outputs.version }}"/' lib/lilka/library.json
+
       - name: Github Releases To Discord
         uses: SethCohen/github-releases-to-discord@v1.13.0
         with:
