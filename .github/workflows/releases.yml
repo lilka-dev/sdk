@@ -94,18 +94,16 @@ jobs:
 
       - name: Generate version_auto_gen.h
         run: |
-          cat > lib/lilka/src/lilka/version_auto_gen.h << 'VERHEADER'
-#pragma once
-#ifndef VERSION_AUTO_GEN_H
-#define VERSION_AUTO_GEN_H
-
-#define SDK_VERSION_MAJOR ${{ needs.update-version.outputs.major }}
-#define SDK_VERSION_MINOR ${{ needs.update-version.outputs.minor }}
-#define SDK_VERSION_PATCH ${{ needs.update-version.outputs.patch }}
-#define SDK_VERSION_TYPE  ${{ needs.update-version.outputs.type }}
-
-#endif // VERSION_AUTO_GEN_H
-VERHEADER
+          cat > lib/lilka/src/lilka/version_auto_gen.h <<EOF
+          #pragma once
+          #ifndef VERSION_AUTO_GEN_H
+          #define VERSION_AUTO_GEN_H
+          #define SDK_VERSION_MAJOR ${{ needs.update-version.outputs.major }}
+          #define SDK_VERSION_MINOR ${{ needs.update-version.outputs.minor }}
+          #define SDK_VERSION_PATCH ${{ needs.update-version.outputs.patch }}
+          #define SDK_VERSION_TYPE  ${{ needs.update-version.outputs.type }}
+          #endif // VERSION_AUTO_GEN_H
+          EOF
           echo "Generated version_auto_gen.h:"
           cat lib/lilka/src/lilka/version_auto_gen.h
 
