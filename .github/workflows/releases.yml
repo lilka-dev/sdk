@@ -42,9 +42,15 @@ jobs:
       - name: Extract version from tag
         id: extract
         run: |
-          # Отримати тег без refs/tags/
-          TAG="${GITHUB_REF#refs/tags/}"
-          VERSION="${TAG#v}"
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+            # Отримати тег без refs/tags/
+            TAG="${GITHUB_REF#refs/tags/}"
+            VERSION="${TAG#v}"
+          else
+            # On push (workflow_run), use version 0.0.0
+            TAG="v0.0.0"
+            VERSION="0.0.0"
+          fi
 
           # Розбити на major/minor/patch
           IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
@@ -87,6 +93,7 @@ jobs:
 
   publish-to-pio:
     needs: update-version
+    if: github.event_name == 'release'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -115,6 +122,7 @@ jobs:
 
   github-releases-to-discord:
     needs: update-version
+    if: github.event_name == 'release'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
