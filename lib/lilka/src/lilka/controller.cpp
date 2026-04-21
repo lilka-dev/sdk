@@ -37,6 +37,12 @@ Controller::Controller() : state{}, semaphore(xSemaphoreCreateRecursiveMutex()) 
     }
     xSemaphoreGive(semaphore);
     clearHandlers();
+#ifdef LILKA_UART_BUTTON_EMULATOR
+    for (int i = 0; i < Button::COUNT; i++) {
+        _emulatedPressed[i] = false;
+        _emulatedPressUntil[i] = 0;
+    }
+#endif
 }
 
 void Controller::inputTask() {
@@ -58,7 +64,16 @@ void Controller::inputTask() {
                 }
 
                 // Is the button being held down?
+#ifdef LILKA_UART_BUTTON_EMULATOR
+                // Release expired pulse presses
+                if (_emulatedPressed[i] && _emulatedPressUntil[i] > 0 && millis() >= _emulatedPressUntil[i]) {
+                    _emulatedPressed[i] = false;
+                    _emulatedPressUntil[i] = 0;
+                }
+                bool pressed = _emulatedPressed[i];
+#else
                 bool pressed = !digitalRead(pins[i]);
+#endif
                 // Should the button repeat right now?
                 bool shouldRepeat = buttonState->nextRepeatTime && millis() >= buttonState->nextRepeatTime;
 
@@ -138,6 +153,11 @@ void Controller::begin() {
     // Create RTOS task for handling button presses
     xTaskCreate([](void* arg) { static_cast<Controller*>(arg)->inputTask(); }, "input", 2048, this, 1, NULL);
 
+#ifdef LILKA_UART_BUTTON_EMULATOR
+    xTaskCreate([](void* arg) { static_cast<Controller*>(arg)->uartEmulatorTask(); }, "uart_emu", 4096, this, 1, NULL);
+    serial.log("UART button emulator enabled");
+#endif
+
     serial.log("controller ready");
 }
 
@@ -178,6 +198,103 @@ void Controller::setAutoRepeat(Button button, uint32_t rate, uint32_t delay) {
     buttonState->repeatRate = rate;
     buttonState->repeatDelay = delay;
 }
+
+#ifdef LILKA_UART_BUTTON_EMULATOR
+
+const char* const Controller::_buttonNames[Button::ANY] = {
+    "UP", "DOWN", "LEFT", "RIGHT", "A", "B", "C", "D", "SELECT", "START",
+};
+
+int Controller::findButtonByName(const char* name) {
+    for (int i = 0; i < Button::ANY; i++) {
+        if (strcmp(name, _buttonNames[i]) == 0) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+void Controller::processUartCommand(const String& cmd) {
+    if (cmd == "PING") {
+        Serial.println("PONG");
+    } else if (cmd == "REBOOT") {
+        Serial.println("REBOOTING");
+        Serial.flush();
+        vTaskDelay(100 / portTICK_PERIOD_MS);
+        ESP.restart();
+    } else if (cmd.startsWith("BTN:")) {
+        String btnName = cmd.substring(4);
+        int idx = findButtonByName(btnName.c_str());
+        if (idx >= 0) {
+            {
+                AcquireController acquire(semaphore);
+                _emulatedPressed[idx] = true;
+                _emulatedPressUntil[idx] = millis() + 100; // 100 ms pulse
+            }
+            Serial.print("BTN_OK:");
+            Serial.println(btnName);
+        } else {
+            Serial.print("BTN_ERR:UNKNOWN:");
+            Serial.println(btnName);
+        }
+    } else if (cmd.startsWith("BTN_HOLD:")) {
+        String btnName = cmd.substring(9);
+        int idx = findButtonByName(btnName.c_str());
+        if (idx >= 0) {
+            {
+                AcquireController acquire(semaphore);
+                _emulatedPressed[idx] = true;
+                _emulatedPressUntil[idx] = 0; // hold until released
+            }
+            Serial.print("BTN_HOLD_OK:");
+            Serial.println(btnName);
+        } else {
+            Serial.print("BTN_ERR:UNKNOWN:");
+            Serial.println(btnName);
+        }
+    } else if (cmd.startsWith("BTN_RELEASE:")) {
+        String btnName = cmd.substring(12);
+        int idx = findButtonByName(btnName.c_str());
+        if (idx >= 0) {
+            {
+                AcquireController acquire(semaphore);
+                _emulatedPressed[idx] = false;
+                _emulatedPressUntil[idx] = 0;
+            }
+            Serial.print("BTN_RELEASE_OK:");
+            Serial.println(btnName);
+        } else {
+            Serial.print("BTN_ERR:UNKNOWN:");
+            Serial.println(btnName);
+        }
+    } else {
+        Serial.print("ERR:UNKNOWN_CMD:");
+        Serial.println(cmd);
+    }
+}
+
+void Controller::uartEmulatorTask() {
+    serial.log("UART button emulator ready");
+    Serial.println("EMULATOR:READY");
+    String cmdBuf = "";
+    while (1) {
+        while (Serial.available()) {
+            char c = (char)Serial.read();
+            if (c == '\n' || c == '\r') {
+                cmdBuf.trim();
+                if (cmdBuf.length() > 0) {
+                    processUartCommand(cmdBuf);
+                    cmdBuf = "";
+                }
+            } else {
+                cmdBuf += c;
+            }
+        }
+        vTaskDelay(5 / portTICK_PERIOD_MS);
+    }
+}
+
+#endif // LILKA_UART_BUTTON_EMULATOR
 
 Controller controller;
 

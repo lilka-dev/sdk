@@ -137,6 +137,16 @@ private:
     void (*globalHandler)(Button, bool);
     int8_t _seq[10] = {UP, UP, DOWN, DOWN, LEFT, RIGHT, LEFT, RIGHT, B, A};
     int8_t _seqIndex = 0;
+#ifdef LILKA_UART_BUTTON_EMULATOR
+#include <Arduino.h>
+    // UART button emulator: virtual button states injected via serial commands
+    bool _emulatedPressed[Button::COUNT];
+    uint64_t _emulatedPressUntil[Button::COUNT];
+    static const char* const _buttonNames[Button::ANY];
+    int findButtonByName(const char* name);
+    void processUartCommand(const String& cmd);
+    void uartEmulatorTask();
+#endif
 };
 
 /// Екземпляр класу `Controller`, який можна використовувати для вимірювання стану кнопок.
