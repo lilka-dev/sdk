@@ -193,7 +193,7 @@ public:
     ///
     /// @param title Заголовок сповіщення.
     /// @param message Повідомлення сповіщення.
-    Alert(const String& title = "", const String& message = "");
+    explicit Alert(const String& title = "", const String& message = "");
     /// Змінити заголовок сповіщення.
     /// @param title Новий заголовок сповіщення.
     void setTitle(const String& title);
@@ -269,7 +269,7 @@ public:
     ///
     /// @param title Заголовок індикатора виконання.
     /// @param message Повідомлення індикатора виконання.
-    ProgressDialog(const String& title = "", const String& message = "");
+    explicit ProgressDialog(const String& title = "", const String& message = "");
     /// Встановити прогрес виконання.
     ///
     /// @param progress Прогрес виконання від 0 до 100.
