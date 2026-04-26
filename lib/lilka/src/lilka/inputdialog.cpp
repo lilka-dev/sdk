@@ -67,7 +67,7 @@ const int16_t keyboard[LILKA_KB_LAYERS * LILKA_KB_LANGS][LILKA_KB_ROWS * LILKA_K
 };
 /* clang-format on */
 
-InputDialog::InputDialog(String title) {
+InputDialog::InputDialog(const String& title) {
     this->title = title;
     this->masked = false;
 
@@ -87,7 +87,11 @@ void InputDialog::setMasked(bool masked) {
     this->masked = masked;
 }
 
-void InputDialog::setValue(String value) {
+void InputDialog::setTitle(const String& title) {
+    this->title = title;
+}
+
+void InputDialog::setValue(const String& value) {
     this->value = value;
 }
 

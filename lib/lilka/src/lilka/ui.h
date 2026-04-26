@@ -57,14 +57,14 @@ public:
     /// Конструктор класу.
     ///
     /// @param title Заголовок меню.
-    explicit Menu(String title = "Меню");
+    explicit Menu(const String& title = "Меню");
 
     ~Menu();
 
     /// Встановити новий заголовок меню
     ///
     /// @param title Заголовок меню.
-    void setTitle(String title);
+    void setTitle(const String& title);
 
     /// Додати пункт до меню.
     ///
@@ -75,8 +75,8 @@ public:
     /// @param callback Вказівник на функцію яку буде викликано при закритті меню.
     /// @param callbackData Дані які буде передано в callback функцію
     void addItem(
-        String title, const menu_icon_t* icon = 0, uint16_t color = lilka::colors::White, String postfix = "",
-        PMenuItemCallback callback = NULL, void* callbackData = NULL
+        const String& title, const menu_icon_t* icon = 0, uint16_t color = lilka::colors::White,
+        const String& postfix = "", PMenuItemCallback callback = NULL, void* callbackData = NULL
     );
 
     /// Встановити курсор на пункт меню.
@@ -121,7 +121,9 @@ public:
     /// @param postfix Текст, який додається після заголовка пункту і вирівнюється до правого краю меню.
     ///
     /// Повертає значення true, якщо пункт було змінено
-    bool setItem(int16_t index, String title, const menu_icon_t* icon = 0, uint16_t color = 0, String postfix = "");
+    bool setItem(
+        int16_t index, const String& title, const menu_icon_t* icon = 0, uint16_t color = 0, const String& postfix = ""
+    );
     /// Отримати пункт меню
     /// @param index Індекс пункту.
     /// @param menuItem Вказівник на lilka::MenuItem куди буде скопійовано пункт
@@ -191,13 +193,13 @@ public:
     ///
     /// @param title Заголовок сповіщення.
     /// @param message Повідомлення сповіщення.
-    Alert(String title, String message);
+    Alert(const String& title = "", const String& message = "");
     /// Змінити заголовок сповіщення.
     /// @param title Новий заголовок сповіщення.
-    void setTitle(String title);
+    void setTitle(const String& title);
     /// Змінити повідомлення сповіщення.
     /// @param message Нове повідомлення сповіщення.
-    void setMessage(String message);
+    void setMessage(const String& message);
     /// Оновити стан сповіщення.
     ///
     /// Цю функцію потрібно викликати, щоб сповіщення опрацювало вхідні дані від користувача та оновило свій стан.
@@ -267,14 +269,18 @@ public:
     ///
     /// @param title Заголовок індикатора виконання.
     /// @param message Повідомлення індикатора виконання.
-    ProgressDialog(String title, String message);
+    ProgressDialog(const String& title = "", const String& message = "");
     /// Встановити прогрес виконання.
     ///
     /// @param progress Прогрес виконання від 0 до 100.
     void setProgress(int16_t progress);
+    /// Встановити новий заголовок індикатора виконання
+    ///
+    /// @param title Заголовок індикатора виконання
+    void setTitle(const String& title);
     /// Встановити повідомлення.
     /// @param message Повідомлення.
-    void setMessage(String message);
+    void setMessage(const String& message);
     /// Намалювати індикатор виконання на Display або Canvas.
     /// @param canvas Вказівник на Display або Canvas, на якому потрібно намалювати індикатор виконання.
     ///
@@ -315,13 +321,17 @@ public:
     /// Конструктор класу.
     ///
     /// @param title Заголовок діалогового вікна введення.
-    explicit InputDialog(String title);
+    explicit InputDialog(const String& title = "");
     /// Встановити маскування введеного тексту. Якщо встановлено `true`, введений текст буде відображатися як зірочки.
     /// @param masked Чи маскувати введений текст.
     void setMasked(bool masked);
+    /// Встановити новий заголовок діалогового вікна введення
+    ///
+    /// @param title Заголовок діалогового вікна введення
+    void setTitle(const String& title);
     /// Встановити початкове значення введеного тексту.
     /// @param value Текст.
-    void setValue(String value);
+    void setValue(const String& value);
     /// Оновити стан діалогового вікна введення.
     ///
     /// Цю функцію потрібно викликати, щоб діалогове вікно введення опрацювало вхідні дані від користувача та оновило свій стан.

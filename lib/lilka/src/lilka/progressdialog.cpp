@@ -10,7 +10,7 @@
 
 namespace lilka {
 
-ProgressDialog::ProgressDialog(String title, String message) {
+ProgressDialog::ProgressDialog(const String& title, const String& message) {
     this->title = title;
     this->message = message;
     this->progress = 0;
@@ -20,7 +20,11 @@ void ProgressDialog::setProgress(int16_t progress) {
     this->progress = progress;
 }
 
-void ProgressDialog::setMessage(String message) {
+void ProgressDialog::setTitle(const String& title) {
+    this->title = title;
+}
+
+void ProgressDialog::setMessage(const String& message) {
     this->message = message;
 }
 

@@ -2,7 +2,7 @@
 
 namespace lilka {
 
-Alert::Alert(String title, String message) {
+Alert::Alert(const String& title, const String& message) {
     this->title = title;
     this->message = message;
     this->done = false;
@@ -10,11 +10,11 @@ Alert::Alert(String title, String message) {
     activationButtons.push_back(Button::A);
 }
 
-void Alert::setTitle(String title) {
+void Alert::setTitle(const String& title) {
     this->title = title;
 }
 
-void Alert::setMessage(String message) {
+void Alert::setMessage(const String& message) {
     this->message = message;
 }
 
