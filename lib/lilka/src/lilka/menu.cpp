@@ -6,7 +6,7 @@ namespace lilka {
 
 #define MIN(a, b)   ((a) < (b) ? (a) : (b))
 
-Menu::Menu(String title) {
+Menu::Menu(const String& title) {
     this->title = title;
     this->scroll = 0;
     this->setCursor(0);
@@ -23,11 +23,11 @@ Menu::~Menu() {
     delete iconImage;
     delete iconCanvas;
 }
-void Menu::setTitle(String title) {
+void Menu::setTitle(const String& title) {
     this->title = title;
 }
 void Menu::addItem(
-    String title, const menu_icon_t* icon, uint16_t color, String postfix, PMenuItemCallback callback,
+    const String& title, const menu_icon_t* icon, uint16_t color, const String& postfix, PMenuItemCallback callback,
     void* callbackData
 ) {
     items.push_back(
@@ -308,7 +308,7 @@ void Menu::setBackgroundColor(uint16_t color) {
     this->bgColor = color;
 }
 
-bool Menu::setItem(int16_t index, String title, const menu_icon_t* icon, uint16_t color, String postfix) {
+bool Menu::setItem(int16_t index, const String& title, const menu_icon_t* icon, uint16_t color, const String& postfix) {
     if (index > items.size() - 1) {
         return false;
     } else {
