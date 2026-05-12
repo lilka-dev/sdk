@@ -22,11 +22,12 @@ void Board::begin() {
     // For V2:
     // GPIO19-20                     USB
     // GPIO0, GPIO3, GPIO45, GPIO 46 Strap pins
+    // GPIO22-25                     Just do not exist[lol:D]
     // GPIO26-32                     Reserved for PSRAM
     // GPIO33-37                     Reserved for Octal PSRAM
     //////////////////////////////////////////////////////////////////////////
-    const int testPins[] = {1,  2,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15, 16, 17,
-                            18, 21, 22, 23, 24, 25, 38, 39, 40, 41, 42, 43, 44, 47, 48};
+    const int testPins[] = {1,  2,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15,
+                            16, 17, 18, 21, 38, 39, 40, 41, 42, 43, 44, 47, 48};
 
     const int testPattern[] = {
         HIGH, LOW, HIGH, HIGH, LOW, HIGH, LOW, LOW, HIGH, LOW, HIGH, HIGH, HIGH, LOW, HIGH, LOW, HIGH, LOW
@@ -53,9 +54,9 @@ void Board::begin() {
             for (int k = 0; k < testCount; k++) {
                 digitalWrite(testPins[i], testPattern[k]);
                 delayMicroseconds(PIN_AWAIT_TIME);
-
                 if (digitalRead(testPins[j]) != testPattern[k]) {
                     shorted = false;
+                    break;
                 }
             }
             if (shorted) lilka::serial.err("Found short between GPIOs %d and %d\n", testPins[i], testPins[j]);
