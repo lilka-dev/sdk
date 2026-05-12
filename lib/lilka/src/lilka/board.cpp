@@ -3,6 +3,7 @@
 #include "board.h"
 #include "display.h"
 #include "config.h"
+#include "esp32-hal-adc.h"
 #include <esp32-hal-gpio.h>
 #include <esp32-hal.h>
 #include <lilka/serial.h>
@@ -13,7 +14,9 @@ Board::Board() {
 }
 
 void Board::begin() {
-#define PIN_AWAIT_TIME 60
+#define PIN_AWAIT_TIME       60
+#define ADC_SAMPLES          10
+#define ADC_READ_TRIGGER_VAL 4000 // Note: it's not a voltage
 #if LILKA_VERSION == 2
     //////////////////////////////////////////////////////////////////////////
     // Perform soldering test
@@ -33,6 +36,9 @@ void Board::begin() {
     // Await pin to stabilize it's state(voltage, etc.)
     delayMicroseconds(PIN_AWAIT_TIME);
 
+    // Setup attenuation for ADC
+    analogSetAttenuation(ADC_11db);
+
     // Test connections based on a fact
     // that pins shouldn't be shorted
     for (int i = 0; i < sizeof(testPins) / sizeof(testPins[0]); i++) {
@@ -43,7 +49,24 @@ void Board::begin() {
 
         // Read other testPins to check on shorts
         for (int j = i + 1; j < sizeof(testPins) / sizeof(testPins[0]); j++) {
-            bool shorted = digitalRead(testPins[j]) == HIGH;
+            bool shorted = false;
+            // For esp32s3
+            // ADC1 is acessible for GPIO(1-10)
+            // ADC2 is acessible for GPIO(11-20)
+            if (testPins[j] <= 20) {
+                unsigned long samplesSum = 0;
+                for (int k = 0; k < ADC_SAMPLES; k++) {
+                    samplesSum += analogRead(testPins[j]);
+                    delayMicroseconds(PIN_AWAIT_TIME);
+                }
+                unsigned long avgRead = (samplesSum / ADC_SAMPLES);
+
+                if (avgRead >= ADC_READ_TRIGGER_VAL) shorted = true;
+                //lilka::serial.log("set HIGH on %d, measured voltage on %d is %lu", testPins[i], testPins[j], avgRead);
+            } else {
+                // This pin has no ADC power, use GPIO read instead
+                shorted = digitalRead(testPins[j]) == HIGH;
+            }
             if (shorted) {
                 lilka::serial.log("Found connection between GPIOs %d and %d\n", testPins[i], testPins[j]);
             }
@@ -52,7 +75,9 @@ void Board::begin() {
         digitalWrite(testPins[i], LOW);
         pinMode(testPins[i], INPUT_PULLDOWN);
     }
-
+#    undef ADC_SAMPLES
+#    undef PIN_AWAIT_TIME
+#    undef ADC_READ_TRIGGER_VAL
 #endif
 
     // Iterate over the pins, set them as inputs
