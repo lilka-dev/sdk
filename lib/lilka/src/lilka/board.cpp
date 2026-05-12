@@ -14,9 +14,7 @@ Board::Board() {
 }
 
 void Board::begin() {
-#define PIN_AWAIT_TIME       60
-#define ADC_SAMPLES          10
-#define ADC_READ_TRIGGER_VAL 4000 // Note: it's not a voltage
+#define PIN_AWAIT_TIME 60
 #if LILKA_VERSION == 2
     //////////////////////////////////////////////////////////////////////////
     // Perform soldering test
@@ -40,38 +38,34 @@ void Board::begin() {
     // Await pin to stabilize it's state(voltage, etc.)
     delayMicroseconds(PIN_AWAIT_TIME);
 
-    for (int testPinAIndex = 0; testPinAIndex < sizeof(testPins) / sizeof(testPins[0]); testPinAIndex++) {
-        for (int testPatternIndex = 0; testPatternIndex < sizeof(testPattern) / sizeof(testPattern[0]);
-             testPatternIndex++) {
+    auto testPinsCount = sizeof(testPins) / sizeof(testPins[0]);
+    auto testCount = sizeof(testPattern) / sizeof(testPattern[0]);
+
+    for (int i = 0; i < testPinsCount; i++) {
+        // setup pin mode for a testPinA
+        pinMode(testPins[i], OUTPUT);
+
+        // iterate over all tested pins
+        for (int j = i + 1; j < testPinsCount; j++) {
+            // default i <> j pins tate
             bool shorted = true;
+            // iterate over tested pattern
+            for (int k = 0; k < testCount; k++) {
+                digitalWrite(testPins[i], testPattern[k]);
+                delayMicroseconds(PIN_AWAIT_TIME);
 
-            // Setup testPattern value on test pin
-            pinMode(testPins[testPinAIndex], OUTPUT);
-
-            digitalWrite(testPins[testPinAIndex], testPattern[testPatternIndex]);
-            delayMicroseconds(PIN_AWAIT_TIME);
-
-            // Read other testPins to check on shorts
-            int testPinBIndex = testPinAIndex + 1;
-            for (; testPinBIndex < sizeof(testPins) / sizeof(testPins[0]); testPinBIndex++) {
-                if (digitalRead(testPins[testPinBIndex]) != testPattern[testPatternIndex]) {
+                if (digitalRead(testPins[j]) != testPattern[k]) {
                     shorted = false;
-                    break;
                 }
             }
-            if (shorted) {
-                lilka::serial.log(
-                    "Found connection between GPIOs %d and %d\n", testPins[testPinAIndex], testPins[testPinBIndex]
-                );
-            }
-            // Restore testPin state
-            digitalWrite(testPins[testPinAIndex], LOW);
-            pinMode(testPins[testPinAIndex], INPUT_PULLDOWN);
+            if (shorted) lilka::serial.err("Found short between GPIOs %d and %d\n", testPins[i], testPins[j]);
         }
+        // Restore testPin state
+        digitalWrite(testPins[i], LOW);
+        pinMode(testPins[i], INPUT_PULLDOWN);
     }
-#    undef ADC_SAMPLES
+
 #    undef PIN_AWAIT_TIME
-#    undef ADC_READ_TRIGGER_VAL
 #endif
 
 // Iterate over the pins, set them as inputs
