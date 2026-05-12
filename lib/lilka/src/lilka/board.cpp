@@ -3,6 +3,9 @@
 #include "board.h"
 #include "display.h"
 #include "config.h"
+#include <esp32-hal-gpio.h>
+#include <esp32-hal.h>
+#include <lilka/serial.h>
 
 namespace lilka {
 
@@ -10,6 +13,48 @@ Board::Board() {
 }
 
 void Board::begin() {
+#define PIN_AWAIT_TIME 60
+#if LILKA_VERSION == 2
+    //////////////////////////////////////////////////////////////////////////
+    // Perform soldering test
+    //////////////////////////////////////////////////////////////////////////
+    // For V2:
+    // GPIO19-20                     USB
+    // GPIO0, GPIO3, GPIO45, GPIO 46 Strap pins
+    // GPIO26-32                     Reserved for PSRAM
+    // GPIO33-37                     Reserved for Octal PSRAM
+    //////////////////////////////////////////////////////////////////////////
+    const int testPins[] = {1,  2,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15, 16, 17,
+                            18, 21, 22, 23, 24, 25, 38, 39, 40, 41, 42, 43, 44, 47, 48};
+    // Configure pin mode for all pins
+    for (auto pin : testPins) {
+        pinMode(pin, INPUT_PULLDOWN);
+    }
+    // Await pin to stabilize it's state(voltage, etc.)
+    delayMicroseconds(PIN_AWAIT_TIME);
+
+    // Test connections based on a fact
+    // that pins shouldn't be shorted
+    for (int i = 0; i < sizeof(testPins) / sizeof(testPins[0]); i++) {
+        // Setup high on a testPin
+        pinMode(testPins[i], OUTPUT);
+        digitalWrite(testPins[i], HIGH);
+        delayMicroseconds(PIN_AWAIT_TIME);
+
+        // Read other testPins to check on shorts
+        for (int j = i + 1; j < sizeof(testPins) / sizeof(testPins[0]); j++) {
+            bool shorted = digitalRead(testPins[j]) == HIGH;
+            if (shorted) {
+                lilka::serial.log("Found connection between GPIOs %d and %d\n", testPins[i], testPins[j]);
+            }
+        }
+        // Restore testPin state
+        digitalWrite(testPins[i], LOW);
+        pinMode(testPins[i], INPUT_PULLDOWN);
+    }
+
+#endif
+
     // Iterate over the pins, set them as inputs
 #if LILKA_VERSION >= 2
     for (int pin : LILKA_EXT_PINS) {
