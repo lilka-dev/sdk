@@ -29,6 +29,10 @@ void Board::begin() {
     //////////////////////////////////////////////////////////////////////////
     const int testPins[] = {1,  2,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15, 16, 17,
                             18, 21, 22, 23, 24, 25, 38, 39, 40, 41, 42, 43, 44, 47, 48};
+
+    const int testPattern[] = {
+        HIGH, LOW, HIGH, HIGH, LOW, HIGH, LOW, LOW, HIGH, LOW, HIGH, HIGH, HIGH, LOW, HIGH, LOW, HIGH, LOW
+    };
     // Configure pin mode for all pins
     for (auto pin : testPins) {
         pinMode(pin, INPUT_PULLDOWN);
@@ -36,51 +40,41 @@ void Board::begin() {
     // Await pin to stabilize it's state(voltage, etc.)
     delayMicroseconds(PIN_AWAIT_TIME);
 
-    // Setup attenuation for ADC
-    analogSetAttenuation(ADC_11db);
+    for (int testPinAIndex = 0; testPinAIndex < sizeof(testPins) / sizeof(testPins[0]); testPinAIndex++) {
+        for (int testPatternIndex = 0; testPatternIndex < sizeof(testPattern) / sizeof(testPattern[0]);
+             testPatternIndex++) {
+            bool shorted = true;
 
-    // Test connections based on a fact
-    // that pins shouldn't be shorted
-    for (int i = 0; i < sizeof(testPins) / sizeof(testPins[0]); i++) {
-        // Setup high on a testPin
-        pinMode(testPins[i], OUTPUT);
-        digitalWrite(testPins[i], HIGH);
-        delayMicroseconds(PIN_AWAIT_TIME);
+            // Setup testPattern value on test pin
+            pinMode(testPins[testPinAIndex], OUTPUT);
 
-        // Read other testPins to check on shorts
-        for (int j = i + 1; j < sizeof(testPins) / sizeof(testPins[0]); j++) {
-            bool shorted = false;
-            // For esp32s3
-            // ADC1 is acessible for GPIO(1-10)
-            // ADC2 is acessible for GPIO(11-20)
-            if (testPins[j] <= 20) {
-                unsigned long samplesSum = 0;
-                for (int k = 0; k < ADC_SAMPLES; k++) {
-                    samplesSum += analogRead(testPins[j]);
-                    delayMicroseconds(PIN_AWAIT_TIME);
+            digitalWrite(testPins[testPinAIndex], testPattern[testPatternIndex]);
+            delayMicroseconds(PIN_AWAIT_TIME);
+
+            // Read other testPins to check on shorts
+            int testPinBIndex = testPinAIndex + 1;
+            for (; testPinBIndex < sizeof(testPins) / sizeof(testPins[0]); testPinBIndex++) {
+                if (digitalRead(testPins[testPinBIndex]) != testPattern[testPatternIndex]) {
+                    shorted = false;
+                    break;
                 }
-                unsigned long avgRead = (samplesSum / ADC_SAMPLES);
-
-                if (avgRead >= ADC_READ_TRIGGER_VAL) shorted = true;
-                //lilka::serial.log("set HIGH on %d, measured voltage on %d is %lu", testPins[i], testPins[j], avgRead);
-            } else {
-                // This pin has no ADC power, use GPIO read instead
-                shorted = digitalRead(testPins[j]) == HIGH;
             }
             if (shorted) {
-                lilka::serial.log("Found connection between GPIOs %d and %d\n", testPins[i], testPins[j]);
+                lilka::serial.log(
+                    "Found connection between GPIOs %d and %d\n", testPins[testPinAIndex], testPins[testPinBIndex]
+                );
             }
+            // Restore testPin state
+            digitalWrite(testPins[testPinAIndex], LOW);
+            pinMode(testPins[testPinAIndex], INPUT_PULLDOWN);
         }
-        // Restore testPin state
-        digitalWrite(testPins[i], LOW);
-        pinMode(testPins[i], INPUT_PULLDOWN);
     }
 #    undef ADC_SAMPLES
 #    undef PIN_AWAIT_TIME
 #    undef ADC_READ_TRIGGER_VAL
 #endif
 
-    // Iterate over the pins, set them as inputs
+// Iterate over the pins, set them as inputs
 #if LILKA_VERSION >= 2
     for (int pin : LILKA_EXT_PINS) {
         pinMode(pin, INPUT);
