@@ -281,6 +281,15 @@ int MultiBoot::finishAndReboot() {
     return 0; // unreachable
 }
 
+void MultiBoot::bootLast() {
+    auto err = esp_ota_set_boot_partition(ota_partition);
+    if (err != ESP_OK) {
+        serial.err("Failed to set boot partition: %d", err);
+    }
+
+    esp_restart();
+}
+
 String MultiBoot::getFirmwarePath() {
     Preferences prefs;
     prefs.begin("lilka", false);
