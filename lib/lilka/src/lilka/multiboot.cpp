@@ -171,10 +171,6 @@ String MultiBoot::lastOTAFirmware() {
     return _prefForKey(MULTIBOOT_OTA_FILE);
 }
 
-String MultiBoot::lastSPIFFSImage() {
-    return _prefForKey(MULTIBOOT_SPIFFS_FILE);
-}
-
 int MultiBoot::startSPIFFSBackup(String toPath) {
     
     const esp_partition_t *pt = esp_partition_find_first(
