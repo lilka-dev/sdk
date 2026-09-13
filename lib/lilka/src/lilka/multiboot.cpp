@@ -197,7 +197,7 @@ int MultiBoot::startSPIFFSBackup(String toPath) {
     current_partition = pt;
     bytesWritten = 0;
     bytesTotal = pt->size;
-   
+    return 0;
 }
 int MultiBoot::startSPIFFSRestore(String fromPath) {
     const esp_partition_t *pt = esp_partition_find_first(
@@ -236,6 +236,7 @@ int MultiBoot::startSPIFFSRestore(String fromPath) {
         serial.err("Can't erase SPIFFS partition: %d", err);
         return -4;
     }
+    return 0;
 }
 
 // This function is called in a loop until it returns 0
@@ -349,16 +350,14 @@ int MultiBoot::start(String path) {
         return -5;
     }
 
-    Preferences prefs;
-    prefs.begin("lilka", false);
     String arg = path;
     // Remove "/sd" prefix
     // TODO: Maybe we should use absolute path (including "/sd")?
     // TODO: Store arg in RAM?
     arg = lilka::fileutils.getLocalPathInfo(arg).path;
 
-    prefs.putString(MULTIBOOT_PATH_KEY, arg);
-    prefs.end();
+    _setPrefForKey(MULTIBOOT_PATH_KEY, arg);
+    _setPrefForKey(MULTIBOOT_OTA_FILE, path);
 
     return 0;
 }
@@ -438,16 +437,9 @@ void MultiBoot::bootLast() {
 }
 
 String MultiBoot::getFirmwarePath() {
-    Preferences prefs;
-    prefs.begin("lilka", false);
-    String arg = "";
-    if (prefs.isKey(MULTIBOOT_PATH_KEY)) {
-        arg = prefs.getString(MULTIBOOT_PATH_KEY);
-        prefs.remove(MULTIBOOT_PATH_KEY);
-    }
-    prefs.end();
-    return arg;
+    return _prefForKey(MULTIBOOT_PATH_KEY);
 }
+
 void MultiBoot::setCMDParams(String cmd) {
     if (cmd.length() > MULTIBOOT_CMD_LEN) {
         serial.err("Too long commandline for kernel set. Consider enlarging MULTIBOOT_CMD_LEN");
