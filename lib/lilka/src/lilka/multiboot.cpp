@@ -168,11 +168,11 @@ static String _prefForKey(const char *key) {
 }
 
 String MultiBoot::lastOTAFirmware() {
-    return _prefByKey(MULTIBOOT_OTA_FILE);
+    return _prefForKey(MULTIBOOT_OTA_FILE);
 }
 
 String MultiBoot::lastSPIFFSImage() {
-    return _prefByKey(MULTIBOOT_SPIFFS_FILE);
+    return _prefForKey(MULTIBOOT_SPIFFS_FILE);
 }
 
 int MultiBoot::startSPIFFSBackup(String toPath) {

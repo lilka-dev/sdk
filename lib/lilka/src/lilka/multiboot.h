@@ -99,6 +99,7 @@ private:
     int bytesTotal;
     int argc = 0;
     char** argv = NULL;
+    String spiffsPath;
 };
 
 /// Екземпляр класу `MultiBoot`, який можна використовувати для роботи з завантажувачем.
