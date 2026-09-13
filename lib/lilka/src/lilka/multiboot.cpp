@@ -182,6 +182,8 @@ int MultiBoot::startSPIFFSBackup(String toPath) {
         return -1;
     }
     
+    //TODO: можливо додати атомарний запис через тимчасовий файл та rename
+    spiffsPath = fromPath;
 
     file = fopen(toPath.c_str(), "w+");
     if (!file) {
@@ -194,6 +196,7 @@ int MultiBoot::startSPIFFSBackup(String toPath) {
     bytesTotal = pt->size;
     return 0;
 }
+
 int MultiBoot::startSPIFFSRestore(String fromPath) {
     const esp_partition_t *pt = esp_partition_find_first(
         ESP_PARTITION_TYPE_DATA,
@@ -204,8 +207,6 @@ int MultiBoot::startSPIFFSRestore(String fromPath) {
         serial.err("Can't find SPIFFS partition");
         return -1;
     }
-
-    spiffsPath = fromPath;
 
     file = fopen(fromPath.c_str(), "r");
     if (!file) {
@@ -234,10 +235,7 @@ int MultiBoot::startSPIFFSRestore(String fromPath) {
     return 0;
 }
 
-// This function is called in a loop until it returns 0
 int MultiBoot::processBackup() {
-     // esp_partition_read, remove/rename
-     // partition -> file
     char buf[4096];
 
     for (int i = 0; i < 4; i++) {
@@ -264,16 +262,12 @@ int MultiBoot::processBackup() {
 }
 
 int MultiBoot::processRestore() {
-    // esp_partition_write
-    // file -> partition
     char buf[4096];
 
     for (int i = 0; i < 4; i++) {
         int len = fread(buf, 1, sizeof(buf), file);
         if (len == 0) {
             fclose(file);
-            // успіх, зберігаєм імʼя в MULTIBOOT_SPIFFS_FILE
-            _setPrefForKey(MULTIBOOT_SPIFFS_FILE, spiffsPath);
             return 0;
         }
 
