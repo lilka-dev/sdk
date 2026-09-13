@@ -44,6 +44,14 @@ public:
     /// Ініціалізувати завантажувач.
     /// \warning Цей метод викликається автоматично при виклику `lilka::begin()`.
     void begin();
+    /// 
+    String lastOTAFirmware();
+    String lastSPIFFSImage();
+    int startSPIFFSBackup(String toPath);
+    int processBackup();
+    int startSPIFFSRestore(String fromPath);
+    int processRestore();
+
     /// Почати завантаження.
     /// \return 0, якщо завантаження почалося успішно, <0 - у разі помилки.
     int start(String path);
