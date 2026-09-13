@@ -23,7 +23,6 @@ namespace lilka {
 extern FileUtils fileutils;
 
 #define MULTIBOOT_PATH_KEY "multiboot_path"
-#define MULTIBOOT_SPIFFS_FILE "multiboot_spiffs"
 #define MULTIBOOT_OTA_FILE "multiboot_ota"
 
 MultiBoot::MultiBoot() :
