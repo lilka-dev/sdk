@@ -183,7 +183,7 @@ int MultiBoot::startSPIFFSBackup(String toPath) {
     }
     
     //TODO: можливо додати атомарний запис через тимчасовий файл та rename
-    spiffsPath = fromPath;
+    spiffsPath = toPath;
 
     file = fopen(toPath.c_str(), "w+");
     if (!file) {
