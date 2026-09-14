@@ -150,14 +150,14 @@ void MultiBoot::begin() {
     serial.log("OTA state: %d", ota_state);
 }
 
-static void _setPrefForKey(const char *key, String val) {
+static void _setPrefForKey(const char* key, String val) {
     Preferences prefs;
     prefs.begin("lilka", false);
     prefs.putString(key, val);
     prefs.end();
 }
 
-static String _prefForKey(const char *key) {
+static String _prefForKey(const char* key) {
     Preferences prefs;
     prefs.begin("lilka", false);
     String ret = "";
@@ -173,17 +173,14 @@ String MultiBoot::lastOTAFirmware() {
 }
 
 int MultiBoot::startSPIFFSBackup(String toPath) {
-    
-    const esp_partition_t *pt = esp_partition_find_first(
-        ESP_PARTITION_TYPE_DATA,
-        ESP_PARTITION_SUBTYPE_DATA_SPIFFS,
-    NULL);
-    
+    const esp_partition_t* pt =
+        esp_partition_find_first(ESP_PARTITION_TYPE_DATA, ESP_PARTITION_SUBTYPE_DATA_SPIFFS, NULL);
+
     if (!pt) {
         serial.err("Can't find SPIFFS partition");
         return -1;
     }
-    
+
     //TODO: можливо додати атомарний запис через тимчасовий файл та rename
     spiffsPath = toPath;
 
@@ -200,10 +197,8 @@ int MultiBoot::startSPIFFSBackup(String toPath) {
 }
 
 int MultiBoot::startSPIFFSRestore(String fromPath) {
-    const esp_partition_t *pt = esp_partition_find_first(
-        ESP_PARTITION_TYPE_DATA,
-        ESP_PARTITION_SUBTYPE_DATA_SPIFFS,
-    NULL);
+    const esp_partition_t* pt =
+        esp_partition_find_first(ESP_PARTITION_TYPE_DATA, ESP_PARTITION_SUBTYPE_DATA_SPIFFS, NULL);
 
     if (!pt) {
         serial.err("Can't find SPIFFS partition");
