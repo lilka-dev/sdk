@@ -6,6 +6,8 @@
 #include "fileutils.h"
 #include "serial.h"
 #include <esp_crc.h>
+#include <esp_spi_flash.h>
+
 #define MULTIBOOT_KCMD_DEFAULT_LOCATION 0x50000000
 typedef struct {
     char cmd[MULTIBOOT_CMD_LEN];
@@ -236,7 +238,7 @@ int MultiBoot::startSPIFFSRestore(String fromPath) {
 }
 
 int MultiBoot::processBackup() {
-    char buf[4096];
+    char buf[SPI_FLASH_SEC_SIZE];
 
     for (int i = 0; i < 4; i++) {
         int len = MIN(sizeof(buf), current_partition->size - bytesWritten);
@@ -262,7 +264,7 @@ int MultiBoot::processBackup() {
 }
 
 int MultiBoot::processRestore() {
-    char buf[4096];
+    char buf[SPI_FLASH_SEC_SIZE];
 
     for (int i = 0; i < 4; i++) {
         int len = fread(buf, 1, sizeof(buf), file);
@@ -352,7 +354,7 @@ int MultiBoot::start(String path) {
 }
 
 int MultiBoot::process() {
-    char buf[4096];
+    char buf[SPI_FLASH_SEC_SIZE];
 
     // Записуємо 16 КБ.
 
