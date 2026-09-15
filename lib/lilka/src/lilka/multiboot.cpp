@@ -6,6 +6,8 @@
 #include "fileutils.h"
 #include "serial.h"
 #include <esp_crc.h>
+#include <esp_spi_flash.h>
+
 #define MULTIBOOT_KCMD_DEFAULT_LOCATION 0x50000000
 typedef struct {
     char cmd[MULTIBOOT_CMD_LEN];
@@ -23,6 +25,7 @@ namespace lilka {
 extern FileUtils fileutils;
 
 #define MULTIBOOT_PATH_KEY "multiboot_path"
+#define MULTIBOOT_OTA_FILE "multiboot_ota"
 
 MultiBoot::MultiBoot() :
     ota_handle(0), current_partition(NULL), ota_partition(NULL), path(""), bytesTotal(0), bytesWritten(0), file(NULL) {
@@ -147,6 +150,140 @@ void MultiBoot::begin() {
     serial.log("OTA state: %d", ota_state);
 }
 
+static void _setPrefForKey(const char* key, String val) {
+    Preferences prefs;
+    prefs.begin("lilka", false);
+    prefs.putString(key, val);
+    prefs.end();
+}
+
+static String _prefForKey(const char* key) {
+    Preferences prefs;
+    prefs.begin("lilka", false);
+    String ret = "";
+    if (prefs.isKey(key)) {
+        ret = prefs.getString(key);
+    }
+    prefs.end();
+    return ret;
+}
+
+String MultiBoot::lastOTAFirmware() {
+    return _prefForKey(MULTIBOOT_OTA_FILE);
+}
+
+int MultiBoot::startSPIFFSBackup(String toPath) {
+    const esp_partition_t* pt =
+        esp_partition_find_first(ESP_PARTITION_TYPE_DATA, ESP_PARTITION_SUBTYPE_DATA_SPIFFS, NULL);
+
+    if (!pt) {
+        serial.err("Can't find SPIFFS partition");
+        return -1;
+    }
+
+    //TODO: можливо додати атомарний запис через тимчасовий файл та rename
+    spiffsPath = toPath;
+
+    file = fopen(toPath.c_str(), "w+");
+    if (!file) {
+        serial.err("Failed to open file: %s", toPath.c_str());
+        return -2;
+    }
+
+    current_partition = pt;
+    bytesWritten = 0;
+    bytesTotal = pt->size;
+    return 0;
+}
+
+int MultiBoot::startSPIFFSRestore(String fromPath) {
+    const esp_partition_t* pt =
+        esp_partition_find_first(ESP_PARTITION_TYPE_DATA, ESP_PARTITION_SUBTYPE_DATA_SPIFFS, NULL);
+
+    if (!pt) {
+        serial.err("Can't find SPIFFS partition");
+        return -1;
+    }
+
+    file = fopen(fromPath.c_str(), "r");
+    if (!file) {
+        serial.err("Failed to open file: %s", fromPath.c_str());
+        return -2;
+    }
+
+    // Verify sizes
+    fseek(file, 0, SEEK_END);
+    long fileSize = ftell(file);
+    fseek(file, 0, SEEK_SET);
+    if (fileSize != pt->size) {
+        serial.err("SPIFFS size mismatch");
+        fclose(file);
+        return -3;
+    }
+
+    current_partition = pt;
+    bytesWritten = 0;
+    bytesTotal = fileSize;
+
+    esp_err_t err = esp_partition_erase_range(pt, 0, pt->size);
+    if (err != ESP_OK) {
+        serial.err("Can't erase SPIFFS partition: %d", err);
+        fclose(file);
+        return -4;
+    }
+    return 0;
+}
+
+int MultiBoot::processBackup() {
+    char buf[SPI_FLASH_SEC_SIZE];
+
+    for (int i = 0; i < 4; i++) {
+        int len = MIN(sizeof(buf), current_partition->size - bytesWritten);
+
+        if (len == 0) {
+            fclose(file);
+            return 0;
+        }
+        esp_err_t err = esp_partition_read(current_partition, bytesWritten, buf, len);
+        if (err != ESP_OK) {
+            serial.err("Can't read SPIFFS partition: %d", err);
+            fclose(file);
+            return -1;
+        }
+        if (fwrite(buf, 1, len, file) != len) {
+            fclose(file);
+            return -2;
+        }
+
+        bytesWritten += len;
+    }
+
+    return bytesWritten;
+}
+
+int MultiBoot::processRestore() {
+    char buf[SPI_FLASH_SEC_SIZE];
+
+    for (int i = 0; i < 4; i++) {
+        int len = fread(buf, 1, sizeof(buf), file);
+        if (len == 0) {
+            fclose(file);
+            return 0;
+        }
+
+        esp_err_t err = esp_partition_write(current_partition, bytesWritten, buf, len);
+        if (err != ESP_OK) {
+            fclose(file);
+            serial.err("Can't write to SPIFFS partition: %d", err);
+            return -6;
+        }
+
+        bytesWritten += len;
+    }
+
+    return bytesWritten;
+}
+
 int MultiBoot::start(String path) {
     // Завантаження прошивки з microSD-картки.
     this->path = path;
@@ -174,6 +311,7 @@ int MultiBoot::start(String path) {
     current_partition = esp_ota_get_running_partition();
     if (current_partition == NULL) {
         serial.err("Failed to get current partition");
+        fclose(file);
         return -3;
     }
     serial.log(
@@ -186,6 +324,7 @@ int MultiBoot::start(String path) {
     ota_partition = esp_ota_get_next_update_partition(current_partition); // get ota1 (we're in ota0 now)
     if (ota_partition == NULL) {
         serial.err("Failed to get next OTA partition");
+        fclose(file);
         return -4;
     }
     serial.log(
@@ -199,25 +338,24 @@ int MultiBoot::start(String path) {
     esp_err_t err = esp_ota_begin(ota_partition, bytesTotal, &ota_handle);
     if (err != ESP_OK) {
         serial.err("Failed to begin OTA: %d", err);
+        fclose(file);
         return -5;
     }
 
-    Preferences prefs;
-    prefs.begin("lilka", false);
     String arg = path;
     // Remove "/sd" prefix
     // TODO: Maybe we should use absolute path (including "/sd")?
     // TODO: Store arg in RAM?
     arg = lilka::fileutils.getLocalPathInfo(arg).path;
 
-    prefs.putString(MULTIBOOT_PATH_KEY, arg);
-    prefs.end();
+    _setPrefForKey(MULTIBOOT_PATH_KEY, arg);
+    _setPrefForKey(MULTIBOOT_OTA_FILE, path);
 
     return 0;
 }
 
 int MultiBoot::process() {
-    char buf[4096];
+    char buf[SPI_FLASH_SEC_SIZE];
 
     // Записуємо 16 КБ.
 
@@ -232,6 +370,7 @@ int MultiBoot::process() {
         esp_err_t err = esp_ota_write(ota_handle, buf, len);
         if (err != ESP_OK) {
             serial.err("Failed to write OTA: %d", err);
+            fclose(file);
             return -6;
         }
 
@@ -291,16 +430,9 @@ void MultiBoot::bootLast() {
 }
 
 String MultiBoot::getFirmwarePath() {
-    Preferences prefs;
-    prefs.begin("lilka", false);
-    String arg = "";
-    if (prefs.isKey(MULTIBOOT_PATH_KEY)) {
-        arg = prefs.getString(MULTIBOOT_PATH_KEY);
-        prefs.remove(MULTIBOOT_PATH_KEY);
-    }
-    prefs.end();
-    return arg;
+    return _prefForKey(MULTIBOOT_PATH_KEY);
 }
+
 void MultiBoot::setCMDParams(String cmd) {
     if (cmd.length() > MULTIBOOT_CMD_LEN) {
         serial.err("Too long commandline for kernel set. Consider enlarging MULTIBOOT_CMD_LEN");
