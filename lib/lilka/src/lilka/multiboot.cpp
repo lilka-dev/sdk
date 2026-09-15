@@ -217,6 +217,7 @@ int MultiBoot::startSPIFFSRestore(String fromPath) {
     fseek(file, 0, SEEK_SET);
     if (fileSize != pt->size) {
         serial.err("SPIFFS size mismatch");
+        fclose(file);
         return -3;
     }
 
@@ -227,6 +228,7 @@ int MultiBoot::startSPIFFSRestore(String fromPath) {
     esp_err_t err = esp_partition_erase_range(pt, 0, pt->size);
     if (err != ESP_OK) {
         serial.err("Can't erase SPIFFS partition: %d", err);
+        fclose(file);
         return -4;
     }
     return 0;
@@ -245,6 +247,7 @@ int MultiBoot::processBackup() {
         esp_err_t err = esp_partition_read(current_partition, bytesWritten, buf, len);
         if (err != ESP_OK) {
             serial.err("Can't read SPIFFS partition: %d", err);
+            fclose(file);
             return -1;
         }
         if (fwrite(buf, 1, len, file) != len) {
@@ -308,6 +311,7 @@ int MultiBoot::start(String path) {
     current_partition = esp_ota_get_running_partition();
     if (current_partition == NULL) {
         serial.err("Failed to get current partition");
+        fclose(file);
         return -3;
     }
     serial.log(
@@ -320,6 +324,7 @@ int MultiBoot::start(String path) {
     ota_partition = esp_ota_get_next_update_partition(current_partition); // get ota1 (we're in ota0 now)
     if (ota_partition == NULL) {
         serial.err("Failed to get next OTA partition");
+        fclose(file);
         return -4;
     }
     serial.log(
@@ -333,6 +338,7 @@ int MultiBoot::start(String path) {
     esp_err_t err = esp_ota_begin(ota_partition, bytesTotal, &ota_handle);
     if (err != ESP_OK) {
         serial.err("Failed to begin OTA: %d", err);
+        fclose(file);
         return -5;
     }
 
@@ -364,6 +370,7 @@ int MultiBoot::process() {
         esp_err_t err = esp_ota_write(ota_handle, buf, len);
         if (err != ESP_OK) {
             serial.err("Failed to write OTA: %d", err);
+            fclose(file);
             return -6;
         }
 
