@@ -11,6 +11,10 @@ class Partition;
 // Callback definition called on each chunk flash/backup done
 typedef bool (*onPartitionChunkClbk)(void* ctx, Partition* part, const String& filename, size_t offset, long fSize);
 
+// Callback and data casts
+#define LILKA_PARTITIONS_ON_CHUNK_CLBK_CAST(CLBK)            reinterpret_cast<lilka::onPartitionChunkClbk>(CLBK)
+#define LILKA_PARTITIONS_ON_CHUNK__CLBK_DATA_CAST(CLBK_DATA) reinterpret_cast<void*>(CLBK_DATA)
+
 // TODO: Documentation on Partitions
 
 class Partition {
@@ -24,6 +28,7 @@ public:
     esp_partition_type_t getType();
     esp_partition_subtype_t getSubtype();
     uint32_t getAddress();
+    uint32_t getSize();
     const char* getLabel();
     bool getEncrypted();
 

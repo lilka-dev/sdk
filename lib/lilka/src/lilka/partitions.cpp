@@ -13,7 +13,6 @@ Partition::Partition(const esp_partition_t* partition) {
 PartitionList::PartitionList() {
     // Retrive partition iterator
     esp_partition_iterator_t cur = esp_partition_find(ESP_PARTITION_TYPE_ANY, ESP_PARTITION_SUBTYPE_ANY, NULL);
-
     // Fill parts vector
     while (cur != NULL) {
         const esp_partition_t* part = esp_partition_get(cur);
@@ -191,6 +190,9 @@ uint32_t Partition::getAddress() {
     return (partition != NULL) ? partition->address : 0;
 }
 
+uint32_t Partition::getSize() {
+    return (partition != NULL) ? partition->size : 0;
+}
 const char* Partition::getLabel() {
     return (partition != NULL) ? partition->label : NULL;
 }
