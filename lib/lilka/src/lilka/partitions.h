@@ -7,13 +7,15 @@
 #endif
 namespace lilka {
 
-typedef bool (*onPartitionChunkClbk)(void* ctx, const String& filename, size_t offset, size_t fSize);
+class Partition;
+// Callback definition called on each chunk flash/backup done
+typedef bool (*onPartitionChunkClbk)(void* ctx, Partition* part, const String& filename, size_t offset, long fSize);
 
 // TODO: Documentation on Partitions
 
 class Partition {
 public:
-    Partition(const esp_partition_t* partition);
+    explicit Partition(const esp_partition_t* partition);
     // Operations:
     bool flash(const String& filename, onPartitionChunkClbk chunkClbk, void* clbkData);
     bool backup(const String& filename, onPartitionChunkClbk chunkClbk, void* clbkData);
@@ -39,6 +41,7 @@ private:
 class PartitionList {
 public:
     PartitionList();
+    ~PartitionList();
 
     // Acesses partition by it's index
     Partition* operator[](size_t index);

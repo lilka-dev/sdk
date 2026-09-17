@@ -24,20 +24,32 @@ PartitionList::PartitionList() {
         cur = esp_partition_next(cur);
     }
 
+    // yeah, it's NULL but it's okay
+    // Release partition iterator.
+    // Parameters:
+    //     iterator -- Iterator obtained using esp_partition_find. The iterator is allowed to be NULL, so it is not necessary to check its value before calling this function.
     esp_partition_iterator_release(cur);
 }
 
+PartitionList::~PartitionList() {
+    for (const auto& part : this->parts) {
+        delete part;
+    }
+}
+
 // Example callbacks:
-static bool part_on_partition_flash_chunk_default(void* ctx, const String& filename, size_t offset, size_t fSize) {
-    Partition* part = static_cast<Partition*>(ctx);
-    lilka::serial.log("Flashing %s to flash:%s [%d/%d]", filename, part->getLabel(), offset, fSize);
+static bool part_on_partition_flash_chunk_default(
+    void* ctx, Partition* part, const String& filename, size_t offset, long fSize
+) {
+    lilka::serial.log("Flashing %s to flash:%s [%d/%d]", filename.c_str(), part->getLabel(), offset, fSize);
 
     return true;
 }
 
-static bool part_on_partition_backup_chunk_default(void* ctx, const String& filename, size_t offset, size_t fSize) {
-    Partition* part = static_cast<Partition*>(ctx);
-    lilka::serial.log("Backuping flash:%s to %s [%d/%d]", part->getLabel(), filename, offset, fSize);
+static bool part_on_partition_backup_chunk_default(
+    void* ctx, Partition* part, const String& filename, size_t offset, long fSize
+) {
+    lilka::serial.log("Backuping flash:%s to %s [%d/%d]", part->getLabel(), filename.c_str(), offset, fSize);
 
     return true;
 }
@@ -45,17 +57,29 @@ static bool part_on_partition_backup_chunk_default(void* ctx, const String& file
 // Operations:
 bool Partition::flash(const String& filename, onPartitionChunkClbk chunkClbk, void* clbkData) {
     // Open file
-    FILE* f = fopen(filename.c_str(), "r");
+    FILE* f = fopen(filename.c_str(), "rb");
     if (!f) return false;
 
     // Determine file size
-    size_t fSize = 0;
-    fseek(f, 0, SEEK_END);
-    fSize = ftell(f);
-    fseek(f, 0, SEEK_SET);
+    if (fseek(f, 0, SEEK_END) != 0) {
+        fclose(f);
+        return false;
+    }
+    long fSize = ftell(f);
+    if (fSize < 0) {
+        fclose(f);
+        return false;
+    }
+    if (fseek(f, 0, SEEK_SET) != 0) {
+        fclose(f);
+        return false;
+    }
 
     // Determine if flashing possible
-    if (fSize > partition->size) return false;
+    if (fSize > partition->size) {
+        fclose(f);
+        return false;
+    }
 
     // Erase partition
     if (ESP_OK != esp_partition_erase_range(partition, 0, partition->size)) {
@@ -70,6 +94,9 @@ bool Partition::flash(const String& filename, onPartitionChunkClbk chunkClbk, vo
         return false;
     }
 
+    // Prepare callback
+    onPartitionChunkClbk clbk = (chunkClbk) ? chunkClbk : part_on_partition_flash_chunk_default;
+
     // Do flash
     size_t offset = 0;
     size_t bRead = 0;
@@ -81,8 +108,7 @@ bool Partition::flash(const String& filename, onPartitionChunkClbk chunkClbk, vo
         offset = offset + bRead;
 
         // Launch callback
-        onPartitionChunkClbk clbk = (chunkClbk) ? chunkClbk : part_on_partition_flash_chunk_default;
-        bool proceed = clbk(clbkData, filename, offset, fSize);
+        bool proceed = clbk(clbkData, this, filename, offset, fSize);
 
         // Handle interruption possibility
         if (!proceed) break;
@@ -104,7 +130,7 @@ bool Partition::flash(const String& filename, onPartitionChunkClbk chunkClbk, vo
 
 bool Partition::backup(const String& filename, onPartitionChunkClbk chunkClbk, void* clbkData) {
     // Open file
-    FILE* f = fopen(filename.c_str(), "w");
+    FILE* f = fopen(filename.c_str(), "wb");
     if (!f) return false;
 
     // Allocate chunk
@@ -114,6 +140,9 @@ bool Partition::backup(const String& filename, onPartitionChunkClbk chunkClbk, v
         return false;
     }
 
+    // Prepare callback
+    onPartitionChunkClbk clbk = (chunkClbk) ? chunkClbk : part_on_partition_backup_chunk_default;
+
     size_t remaining = partition->size;
     size_t offset = 0;
 
@@ -121,12 +150,14 @@ bool Partition::backup(const String& filename, onPartitionChunkClbk chunkClbk, v
         size_t to_read = (remaining > LILKA_PART_CHUNK_SIZE) ? LILKA_PART_CHUNK_SIZE : remaining;
         if (ESP_OK != esp_partition_read(partition, offset, chunk, to_read)) break;
 
+        size_t written = fwrite(chunk, 1, to_read, f);
+        if (written != to_read) break;
+
         offset += to_read;
         remaining -= to_read;
 
         // Launch callback
-        onPartitionChunkClbk clbk = (chunkClbk) ? chunkClbk : part_on_partition_backup_chunk_default;
-        bool proceed = clbk(clbkData, filename, offset, partition->size);
+        bool proceed = clbk(clbkData, this, filename, offset, partition->size);
         if (!proceed) break;
     }
 
