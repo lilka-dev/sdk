@@ -1,6 +1,8 @@
 #include "partitions.h"
 #include "serial.h"
 
+#include <esp_ota_ops.h>
+
 // TODO: sys.get_partition_* to be deprecated
 // TODO: simplify multiboot
 
@@ -171,6 +173,10 @@ bool Partition::backup(const String& filename, onPartitionChunkClbk chunkClbk, v
     fclose(f);
 
     return isBackupDone;
+}
+
+bool Partition::isRunning() {
+    return partition == esp_ota_get_running_partition();
 }
 
 // Accessors:

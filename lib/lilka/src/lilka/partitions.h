@@ -23,6 +23,8 @@ public:
     // Operations:
     bool flash(const String& filename, onPartitionChunkClbk chunkClbk, void* clbkData);
     bool backup(const String& filename, onPartitionChunkClbk chunkClbk, void* clbkData);
+    // returns true if partition represents one which we just boot from
+    bool isRunning();
     // Accessors:
     esp_flash_t* getFlashChip();
     esp_partition_type_t getType();
