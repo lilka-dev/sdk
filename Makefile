@@ -82,6 +82,7 @@ cppcheck: ## Run cppcheck check
 		--enable=performance,style \
 		--suppress=knownPointerToBool \
 		--suppress=noCopyConstructor \
+		--suppress=useStlAlgorithm \
 		--suppress=noOperatorEq \
 		--inline-suppr \
 		--error-exitcode=1
