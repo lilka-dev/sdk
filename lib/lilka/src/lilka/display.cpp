@@ -2,6 +2,7 @@
 
 #include "default_splash.h"
 #include "spi.h"
+#include <Preferences.h>
 #include "serial.h"
 #include "fmath.h"
 #include "buzzer.h"
@@ -37,12 +38,19 @@ Display::Display() :
 }
 
 void Display::begin() {
-    serial.log("initializing display");
-#ifdef LILKA_BREADBOARD
-    Arduino_ST7789::begin(40000000);
-#else
-    Arduino_ST7789::begin(80000000);
-#endif
+    // Read display frequency and SPI mode from NVS
+    Preferences prefs;
+    prefs.begin(LILKA_SPI_NVS_NAMESPACE, true);
+    uint32_t displayFrequency = prefs.getUInt(LILKA_SPI_NVS_DISPLAY_FREQUENCY_KEY, LILKA_DISPLAY_FREQUENCY);
+    uint8_t displayMode = prefs.getUChar(LILKA_SPI_NVS_DISPLAY_MODE_KEY, LILKA_DISPLAY_SPI_MODE);
+    prefs.end();
+
+    if (displayMode > SPI_MODE3) displayMode = LILKA_DISPLAY_SPI_MODE;
+
+    serial.log("initializing display at %d Hz, SPI mode %d", displayFrequency, displayMode);
+    // Arduino_ST7789::begin() forces SPI_MODE3, so call Arduino_TFT::begin() with our own data mode
+    _override_datamode = displayMode;
+    Arduino_TFT::begin(displayFrequency);
     setFont(FONT_10x20);
     setUTF8Print(true);
     serial.log("display ok");
