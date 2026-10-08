@@ -6,6 +6,14 @@
 #include <Arduino_GFX_Library.h>
 #include <U8g2lib.h>
 
+#ifdef LILKA_BREADBOARD
+#    define LILKA_DISPLAY_FREQUENCY 40000000
+#else
+#    define LILKA_DISPLAY_FREQUENCY 80000000
+#endif
+// ST7789 потребує SPI_MODE3 на ESP32 (див. Arduino_ST7789::begin)
+#define LILKA_DISPLAY_SPI_MODE SPI_MODE3
+
 namespace lilka {
 
 // Рекомендовані шрифти для використання з дисплеєм.

@@ -3,8 +3,10 @@
 
 #include <SPI.h>
 
-#define LILKA_SPI_NVS_NAMESPACE        "spi"
-#define LILKA_SPI_NVS_SD_FREQUENCY_KEY "sdFrequency"
+#define LILKA_SPI_NVS_NAMESPACE             "spi"
+#define LILKA_SPI_NVS_SD_FREQUENCY_KEY      "sdFrequency"
+#define LILKA_SPI_NVS_DISPLAY_FREQUENCY_KEY "dispFrequency"
+#define LILKA_SPI_NVS_DISPLAY_MODE_KEY      "dispMode"
 
 namespace lilka {
 
