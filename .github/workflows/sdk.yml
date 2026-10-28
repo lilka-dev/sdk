@@ -22,9 +22,10 @@ jobs:
             ~/.platformio/.cache
             ./lib/lilka/.pio
           key: ${{ runner.os }}-lilka
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
-          python-version: '3.9'
+          # 3.9 isn't available for the current ubuntu-latest image
+          python-version: '3.11'
       - name: Install PlatformIO Core
         run: pip install --upgrade platformio
 

@@ -28,6 +28,15 @@ MultiBoot::MultiBoot() :
     ota_handle(0), current_partition(NULL), ota_partition(NULL), path(""), bytesTotal(0), bytesWritten(0), file(NULL) {
 }
 
+// The other one of app0/app1. With more apps sharing the flash (e.g. Retro-Go next to Keira)
+// esp_ota_get_next_update_partition() may return a partition that belongs to them.
+static const esp_partition_t* getGuestPartition(const esp_partition_t* current) {
+    const char* other = strcmp(current->label, "app0") == 0 ? "app1" : "app0";
+    const esp_partition_t* partition =
+        esp_partition_find_first(ESP_PARTITION_TYPE_APP, ESP_PARTITION_SUBTYPE_ANY, other);
+    return partition ? partition : esp_ota_get_next_update_partition(current);
+}
+
 void MultiBoot::begin() {
     // Get commandline args
     bool verify_kcmd_loc = &kcmd == reinterpret_cast<KernelParams*>(MULTIBOOT_KCMD_DEFAULT_LOCATION);
@@ -86,7 +95,7 @@ void MultiBoot::begin() {
         current_partition->subtype,
         current_partition->size
     );
-    ota_partition = esp_ota_get_next_update_partition(current_partition); // get ota1 (we're in ota0 now)
+    ota_partition = getGuestPartition(current_partition);
     serial.log(
         "OTA partition: %s, type: %d, subtype: %d, size: %d",
         ota_partition->label,
@@ -183,7 +192,7 @@ int MultiBoot::start(String path) {
         current_partition->subtype,
         current_partition->size
     );
-    ota_partition = esp_ota_get_next_update_partition(current_partition); // get ota1 (we're in ota0 now)
+    ota_partition = getGuestPartition(current_partition);
     if (ota_partition == NULL) {
         serial.err("Failed to get next OTA partition");
         return -4;
