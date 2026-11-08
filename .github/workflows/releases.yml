@@ -90,7 +90,9 @@ jobs:
         run: |
           echo "Updating version to ${{ needs.update-version.outputs.version }}"
           sed -i 's/"version": "[^"]*"/"version": "${{ needs.update-version.outputs.version }}"/' lib/lilka/library.json
+          sed -i 's/"version": "[^"]*"/"version": "${{ needs.update-version.outputs.version }}"/' lib/lilka_modules/library.json
           cat lib/lilka/library.json
+          cat lib/lilka_modules/library.json
 
       - name: Generate version_auto_gen.h
         run: |
@@ -113,8 +115,8 @@ jobs:
 
       - name: Publish to PlatformIO Registry
         run: |
-          cd lib/lilka
-          pio pkg publish --non-interactive
+          (cd lib/lilka && pio pkg publish --non-interactive)
+          (cd lib/lilka_modules && pio pkg publish --non-interactive)
           echo "Published to PlatformIO Registry"
 
   github-releases-to-discord:
