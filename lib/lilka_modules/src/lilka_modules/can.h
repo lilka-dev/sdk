@@ -18,8 +18,8 @@ public:
     };
 
     struct Config {
-        int tx = pins::UART_TX;
-        int rx = pins::UART_RX;
+        int tx = pins::get("can", "tx");
+        int rx = pins::get("can", "rx");
         uint32_t bitrate = 500000; ///< 25k, 50k, 100k, 125k, 250k, 500k, 800k або 1M
         Mode mode = Mode::Normal;
         uint32_t filterCode = 0;
@@ -30,7 +30,7 @@ public:
     };
 
     ~Can();
-    esp_err_t begin(const Config& config);
+    esp_err_t begin(const Config& conf);
     void end();
     bool isRunning() const {
         return running;

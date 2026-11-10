@@ -16,9 +16,9 @@ Ir::~Ir() {
     end();
 }
 
-esp_err_t Ir::begin(const Config& config) {
+esp_err_t Ir::begin(const Config& conf) {
     end();
-    cfg = config;
+    cfg = conf;
     esp_err_t err;
     if (cfg.tx >= 0) {
         rmt_config_t tx = RMT_DEFAULT_CONFIG_TX((gpio_num_t)cfg.tx, cfg.txChannel);

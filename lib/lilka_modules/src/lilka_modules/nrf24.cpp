@@ -84,9 +84,9 @@ uint8_t Nrf24::status() {
     return xfer(CMD_NOP, nullptr, nullptr, 0);
 }
 
-bool Nrf24::begin(const Config& config) {
+bool Nrf24::begin(const Config& conf) {
     end();
-    cfg = config;
+    cfg = conf;
     if (!cfg.spi) return false;
     if (cfg.addressWidth < 3 || cfg.addressWidth > 5) cfg.addressWidth = 5;
     if (cfg.payloadSize > MAX_PAYLOAD) cfg.payloadSize = MAX_PAYLOAD;

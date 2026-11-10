@@ -24,7 +24,7 @@ public:
         float x, y, z; ///< мкТл
     };
 
-    bool begin(const Config& config);
+    bool begin(const Config& conf);
     bool read(Data& data);
     float temperature();
     /// Повний діапазон по осях, мТл.

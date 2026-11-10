@@ -35,8 +35,8 @@ bool Tmag5273::readRegister(uint8_t reg, uint8_t* data, size_t n) {
     return true;
 }
 
-bool Tmag5273::begin(const Config& config) {
-    cfg = config;
+bool Tmag5273::begin(const Config& conf) {
+    cfg = conf;
     uint8_t man[2] = {};
     if (!readRegister(REG_MANUFACTURER_ID_LSB, man, 2)) return false;
     if (man[0] != 0x49 || man[1] != 0x54) return false; // "TI"

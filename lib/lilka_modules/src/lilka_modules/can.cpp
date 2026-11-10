@@ -38,22 +38,22 @@ bool Can::timingFor(uint32_t bitrate, twai_timing_config_t& out) {
     }
 }
 
-esp_err_t Can::begin(const Config& config) {
+esp_err_t Can::begin(const Config& conf) {
     end();
     twai_timing_config_t timing;
-    if (!timingFor(config.bitrate, timing)) return ESP_ERR_INVALID_ARG;
+    if (!timingFor(conf.bitrate, timing)) return ESP_ERR_INVALID_ARG;
 
     twai_mode_t mode = TWAI_MODE_NORMAL;
-    if (config.mode == Mode::ListenOnly) mode = TWAI_MODE_LISTEN_ONLY;
-    if (config.mode == Mode::NoAck) mode = TWAI_MODE_NO_ACK;
-    twai_general_config_t general = TWAI_GENERAL_CONFIG_DEFAULT((gpio_num_t)config.tx, (gpio_num_t)config.rx, mode);
-    general.rx_queue_len = config.rxQueue;
-    general.tx_queue_len = config.txQueue;
+    if (conf.mode == Mode::ListenOnly) mode = TWAI_MODE_LISTEN_ONLY;
+    if (conf.mode == Mode::NoAck) mode = TWAI_MODE_NO_ACK;
+    twai_general_config_t general = TWAI_GENERAL_CONFIG_DEFAULT((gpio_num_t)conf.tx, (gpio_num_t)conf.rx, mode);
+    general.rx_queue_len = conf.rxQueue;
+    general.tx_queue_len = conf.txQueue;
 
     twai_filter_config_t filter;
-    filter.acceptance_code = config.filterCode;
-    filter.acceptance_mask = config.filterMask;
-    filter.single_filter = config.singleFilter;
+    filter.acceptance_code = conf.filterCode;
+    filter.acceptance_mask = conf.filterMask;
+    filter.single_filter = conf.singleFilter;
 
     esp_err_t err = twai_driver_install(&general, &timing, &filter);
     if (err != ESP_OK) return err;

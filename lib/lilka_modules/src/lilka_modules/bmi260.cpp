@@ -94,8 +94,8 @@ bool Bmi260::loadConfig() {
     return false;
 }
 
-Bmi260::Result Bmi260::begin(const Config& config) {
-    cfg = config;
+Bmi260::Result Bmi260::begin(const Config& conf) {
+    cfg = conf;
     initialized = false;
     uint8_t accOdr, gyrOdr, accRange, gyrRange;
     switch (cfg.accelRangeG) {

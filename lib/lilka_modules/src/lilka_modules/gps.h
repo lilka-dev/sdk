@@ -14,13 +14,13 @@ class Gps {
 public:
     struct Config {
         uart_port_t port = UART_NUM_2;
-        int rx = pins::UART_RX; ///< Вхід у Лілку (TX модуля)
-        int tx = pins::UART_TX; ///< Вихід з Лілки (RX модуля), NC - лише прийом
-        uint32_t baud = 9600;
+        int rx = pins::get("gps", "rx"); ///< Вхід у Лілку (TX модуля)
+        int tx = pins::get("gps", "tx"); ///< Вихід з Лілки (RX модуля), NC - лише прийом
+        uint32_t baud = (uint32_t)lilka::config.getInt("gps", "baud", 9600);
     };
 
     ~Gps();
-    esp_err_t begin(const Config& config);
+    esp_err_t begin(const Config& conf);
     void end();
     bool isRunning() const {
         return running;

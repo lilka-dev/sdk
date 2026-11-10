@@ -307,9 +307,9 @@ SX126x::Result SX126x::configure() {
     return Result::OK;
 }
 
-SX126x::Result SX126x::begin(const Config& config) {
+SX126x::Result SX126x::begin(const Config& conf) {
     end();
-    cfg = config;
+    cfg = conf;
     if (!cfg.spi) return Result::InvalidParam;
     settings = SPISettings(cfg.spiFrequency, MSBFIRST, SPI_MODE0);
     pinMode(cfg.nss, OUTPUT);

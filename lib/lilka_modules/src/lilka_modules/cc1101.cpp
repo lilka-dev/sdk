@@ -264,9 +264,9 @@ bool Cc1101::configure() {
     return setFrequency(cfg.frequencyMhz);
 }
 
-bool Cc1101::begin(const Config& config) {
+bool Cc1101::begin(const Config& conf) {
     end();
-    cfg = config;
+    cfg = conf;
     if (!cfg.spi) return false;
     settings = SPISettings(cfg.spiFrequency, MSBFIRST, SPI_MODE0);
     pinMode(cfg.csn, OUTPUT);

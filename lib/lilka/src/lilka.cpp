@@ -13,6 +13,7 @@ void begin() {
     audio.begin();
     spi_begin();
     fileutils.begin();
+    config.reload(); // Must be initialized AFTER SD card: reads /sd/.lilka/config
     display.begin(); // Must be initialized AFTER SD card
     controller.begin(); // Must be initialized AFTER SD card (since SD card somehow messes with GPIO)
     battery.begin();

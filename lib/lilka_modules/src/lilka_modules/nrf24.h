@@ -24,9 +24,9 @@ public:
 
     struct Config {
         SPIClass* spi = nullptr;
-        int csn = pins::SPI_CS;
-        int ce = pins::RF_CE;
-        int irq = pins::RF_IRQ; ///< лише читається; NC - не використовується
+        int csn = pins::get("rf", "cs");
+        int ce = pins::get("rf", "ce");
+        int irq = pins::get("rf", "irq"); ///< лише читається; NC - не використовується
         uint8_t channel = 76; ///< 0-125, частота = 2400 + channel МГц
         DataRate dataRate = DataRate::Rate1M;
         uint8_t paLevel = 3; ///< 0 (-18 дБм) ... 3 (0 дБм)
@@ -41,7 +41,7 @@ public:
 
     ~Nrf24();
     /// false - чип не відповідає (або це не nRF24L01+).
-    bool begin(const Config& config);
+    bool begin(const Config& conf);
     void end();
 
     void setChannel(uint8_t ch);

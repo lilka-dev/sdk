@@ -24,9 +24,9 @@ public:
     static constexpr size_t MAX_DURATIONS = 380;
 
     struct Config {
-        int tx = pins::UART_TX; ///< NC - без передавача
-        int rx = pins::UART_RX; ///< NC - без приймача
-        uint32_t carrierHz = 38000;
+        int tx = pins::get("ir", "tx"); ///< NC - без передавача
+        int rx = pins::get("ir", "rx"); ///< NC - без приймача
+        uint32_t carrierHz = (uint32_t)lilka::config.getInt("ir", "carrier", 38000);
         uint8_t dutyPercent = 33;
         bool rxActiveLow = true; ///< KY-022 / VS1838B тримає 0, поки бачить несучу
         uint16_t rxIdleUs = 12000; ///< пауза, що завершує кадр
@@ -35,7 +35,7 @@ public:
     };
 
     ~Ir();
-    esp_err_t begin(const Config& config);
+    esp_err_t begin(const Config& conf);
     void end();
 
     /// Надіслати сирі тривалості (мкс, починаючи з імпульсу). carrierHz = 0 - взяти з конфігурації.

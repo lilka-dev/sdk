@@ -18,6 +18,7 @@
 #include "lilka/audio.h"
 #include "lilka/sdk.h"
 #include "lilka/dynloader.h"
+#include "lilka/config/config.h"
 
 namespace lilka {
 /// Ініціалізація Лілки

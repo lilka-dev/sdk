@@ -26,10 +26,10 @@ public:
 
     struct Config {
         SPIClass* spi = nullptr;
-        int csn = pins::SPI_CS;
-        int miso = pins::SPI_MISO; ///< для очікування CHIP_RDYn
-        int gdo0 = pins::RF_CE;
-        int gdo2 = pins::RF_IRQ;
+        int csn = pins::get("rf", "cs");
+        int miso = pins::get("rf", "miso"); ///< для очікування CHIP_RDYn
+        int gdo0 = pins::get("rf", "ce");
+        int gdo2 = pins::get("rf", "irq");
         float frequencyMhz = 433.92f;
         Modulation modulation = Modulation::GFSK;
         uint32_t dataRate = 38400; ///< бод, 600 ... 500000
@@ -52,7 +52,7 @@ public:
 
     ~Cc1101();
     /// false - чип не відповідає або параметри поза межами.
-    bool begin(const Config& config);
+    bool begin(const Config& conf);
     void end();
 
     bool setFrequency(float mhz);

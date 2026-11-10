@@ -31,11 +31,11 @@ public:
 
     struct Config {
         SPIClass* spi = nullptr;
-        int nss = pins::SPI_CS;
-        int busy = pins::LORA_BUSY;
-        int nrst = pins::LORA_NRST;
-        int rxen = pins::LORA_RXEN;
-        int txen = pins::LORA_TXEN;
+        int nss = pins::get("lora", "nss");
+        int busy = pins::get("lora", "busy");
+        int nrst = pins::get("lora", "nrst");
+        int rxen = pins::get("lora", "rxen");
+        int txen = pins::get("lora", "txen");
         Chip chip = Chip::SX1262;
         uint32_t frequencyHz = 868100000;
         uint8_t spreadingFactor = 7; ///< 5-12
@@ -58,7 +58,7 @@ public:
     };
 
     ~SX126x();
-    Result begin(const Config& config);
+    Result begin(const Config& conf);
     void end();
 
     /// Надіслати пакет і дочекатись TxDone. Після передачі повертається в прийом, якщо він був увімкнений.

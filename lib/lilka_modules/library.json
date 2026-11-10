@@ -15,7 +15,6 @@
     "platforms": "espressif32",
     "include": [
         "src",
-        "examples",
         "README.md"
     ]
 }

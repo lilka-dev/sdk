@@ -7,9 +7,9 @@ Gps::~Gps() {
     end();
 }
 
-esp_err_t Gps::begin(const Config& config) {
+esp_err_t Gps::begin(const Config& conf) {
     end();
-    cfg = config;
+    cfg = conf;
     uart_config_t uc = {};
     uc.baud_rate = (int)cfg.baud;
     uc.data_bits = UART_DATA_8_BITS;

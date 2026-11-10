@@ -37,7 +37,7 @@ public:
         InvalidParam,
     };
 
-    Result begin(const Config& config);
+    Result begin(const Config& conf);
     bool read(Data& data);
     float temperature();
     /// Блоб завантажено і чип повідомив init_ok.
