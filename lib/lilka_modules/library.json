@@ -1,0 +1,20 @@
+{
+    "name": "LilkaModules",
+    "version": "0.1.0",
+    "description": "Drivers for Lilka v2 extension modules: GPS, CAN, IR, LoRa (SX126x), nRF24L01+, CC1101, BMI260, TMAG5273",
+    "license": "GPL-2.0",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/lilka-dev/sdk.git"
+    },
+    "dependencies": {
+        "lilka/Lilka": "*"
+    },
+    "homepage": "https://github.com/lilka-dev/sdk",
+    "frameworks": "arduino",
+    "platforms": "espressif32",
+    "include": [
+        "src",
+        "README.md"
+    ]
+}

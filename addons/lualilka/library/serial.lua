@@ -10,12 +10,18 @@ serial = {}
 --- print("Available bytes:", bytesAvailable)
 function serial.available() end
 
----Ініціалізує послідовний порт із заданими параметрами.
----@param baud integer швидкість передачі даних (за замовчуванням 115200)
----@param config integer конфігурація порту (за замовчуванням SERIAL_8N1)
+---Ініціалізує послідовний порт (UART1) із заданими параметрами.
+---
+---Без ``rx``/``tx`` використовуються GPIO47 (RX) і GPIO48 (TX). Модулі GPS, IR і CAN під'єднані до GPIO44 (RX) і GPIO43 (TX).
+---Якщо ці контакти вже використовує інший скрипт (наприклад, сервіс), функція завершиться помилкою.
+---@param baud? integer швидкість передачі даних (за замовчуванням 115200)
+---@param config? integer конфігурація порту (за замовчуванням SERIAL_8N1)
+---@param rx? integer GPIO для прийому (за замовчуванням 47)
+---@param tx? integer GPIO для передачі (за замовчуванням 48)
 ---@usage
 --- serial.begin(9600, serial.SERIAL_8N1)
-function serial.begin(baud, config) end
+--- serial.begin(9600, serial.SERIAL_8N1, 44, 43) -- контакти 3 і 4 роз'єму розширення
+function serial.begin(baud, config, rx, tx) end
 
 ---Зупиняє послідовний порт.
 ---@usage
@@ -49,7 +55,7 @@ function serial.println(...) end
 
 ---Читає дані з послідовного порту.
 ---@param count integer максимальна кількість байтів для читання (опціонально)
----@return string|integer якщо `count` задано, повертає рядок; якщо ні — окремий байт
+---@return string|integer якщо `count` задано, повертає рядок (може містити нульові байти); якщо ні — окремий байт
 ---@usage
 --- local data = serial.read(10)
 --- print("Data:", data)
