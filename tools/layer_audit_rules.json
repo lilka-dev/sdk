@@ -1,0 +1,204 @@
+{
+  "description": "Lilka SDK (lilka-dev/sdk) architecture, complexity and convention audit rules. Run from the SDK repo root: python3 tools/layer_audit.py -r tools/layer_audit_rules.json. Derived from the Keira rules and the SDK's AGENTS.md.",
+  "rules": [
+    {
+      "id": "core-no-module-deps",
+      "name": "Core lilka must not depend on optional lilka_modules",
+      "type": "forbidden_patterns",
+      "paths": ["lib/lilka/src"],
+      "file_extensions": [".cpp", ".h"],
+      "exclude_dirs": [".git", ".pio", "build", "contrib"],
+      "scan_strings": true,
+      "patterns": ["^\\s*#\\s*include\\s*[\"<][^\">]*lilka_modules"]
+    },
+    {
+      "id": "foundation-no-upper-layer-deps",
+      "name": "Foundation subsystems (serial, fileutils, config, spi, stringutils, fmath, sdk, partitions) must not include UI/display/controller",
+      "type": "forbidden_patterns",
+      "paths": [
+        "lib/lilka/src/lilka/serial.cpp", "lib/lilka/src/lilka/serial.h",
+        "lib/lilka/src/lilka/fileutils.cpp", "lib/lilka/src/lilka/fileutils.h",
+        "lib/lilka/src/lilka/spi.cpp", "lib/lilka/src/lilka/spi.h",
+        "lib/lilka/src/lilka/stringutils.cpp", "lib/lilka/src/lilka/stringutils.h",
+        "lib/lilka/src/lilka/fmath.cpp", "lib/lilka/src/lilka/fmath.h",
+        "lib/lilka/src/lilka/sdk.cpp", "lib/lilka/src/lilka/sdk.h",
+        "lib/lilka/src/lilka/partitions.cpp", "lib/lilka/src/lilka/partitions.h",
+        "lib/lilka/src/lilka/config"
+      ],
+      "file_extensions": [".cpp", ".h"],
+      "scan_strings": true,
+      "patterns": ["^\\s*#\\s*include\\s*[\"<](lilka/)?(ui|display|controller|buzzer|audio|board|resources)\\.h[\">]"]
+    },
+    {
+      "id": "no-umbrella-include-in-subsystems",
+      "name": "Subsystems must include what they use, not the umbrella lilka.h",
+      "type": "forbidden_patterns",
+      "paths": ["lib/lilka/src/lilka", "lib/lilka_modules/src"],
+      "file_extensions": [".cpp", ".h"],
+      "exclude_dirs": [".git", ".pio", "build", "contrib"],
+      "scan_strings": true,
+      "patterns": ["^\\s*#\\s*include\\s*[\"<](lilka/)?lilka\\.h[\">]"]
+    },
+    {
+      "id": "no-manual-singleton-instances",
+      "name": "SDK subsystems are extern singletons (lilka::board, lilka::audio, ...), never instantiate them manually",
+      "type": "forbidden_patterns",
+      "paths": ["lib"],
+      "file_extensions": [".cpp", ".h"],
+      "exclude_dirs": [".git", ".pio", "build", "contrib"],
+      "exclude_files": [
+        "board.cpp", "audio.cpp", "battery.cpp", "buzzer.cpp", "controller.cpp", "display.cpp",
+        "resources.cpp", "multiboot.cpp", "partitions.cpp", "config.cpp", "fileutils.cpp",
+        "stringutils.cpp", "serial.cpp", "sdk.cpp"
+      ],
+      "patterns": ["^\\s*(?:lilka::)?(Board|Audio|Battery|Buzzer|Controller|Display|Resources|MultiBoot|PartitionList|FileUtils|StringUtils|LilkaSDK|SerialInterface)\\s+\\w+\\s*(\\(.*\\)|\\{.*\\})?\\s*;"]
+    },
+    {
+      "id": "no-hardcoded-gpio",
+      "name": "GPIO numbers must come from LILKA_GPIO_* / LILKA_* config defines, never literals",
+      "type": "forbidden_patterns",
+      "paths": ["lib"],
+      "file_extensions": [".cpp", ".h"],
+      "exclude_dirs": [".git", ".pio", "build", "contrib"],
+      "exclude_files": ["config.h", "defaults.h", "pins.h"],
+      "patterns": [
+        "\\b(pinMode|digitalWrite|digitalRead|analogRead|gpio_set_level|gpio_get_level|gpio_set_direction|gpio_reset_pin|attachInterrupt|detachInterrupt)\\s*\\(\\s*(\\(\\w+\\)\\s*)?-?\\d+\\b",
+        "\\bGPIO_NUM_\\d+\\b",
+        "\\b(SPI\\w*|Wire\\w*)\\s*\\.\\s*begin\\s*\\(\\s*-?\\d+\\b"
+      ]
+    },
+    {
+      "id": "no-arduino-delay",
+      "name": "Use vTaskDelay() instead of Arduino delay()",
+      "type": "forbidden_patterns",
+      "paths": ["lib"],
+      "file_extensions": [".cpp", ".h"],
+      "exclude_dirs": [".git", ".pio", "build", "contrib"],
+      "patterns": ["(?<![.\\w:>])delay\\s*\\("]
+    },
+    {
+      "id": "no-arduino-filesystem",
+      "name": "Use C-style file API (fopen/fread/...) with /sd/ or /spiffs/ paths, not SD.open() etc.",
+      "type": "forbidden_patterns",
+      "paths": ["lib"],
+      "file_extensions": [".cpp", ".h"],
+      "exclude_dirs": [".git", ".pio", "build", "contrib"],
+      "patterns": ["\\b(SD|SPIFFS|LittleFS|FFat)\\s*\\.\\s*(open|exists|remove|mkdir|rmdir|rename)\\b"]
+    },
+    {
+      "id": "no-sprintf",
+      "name": "No unbounded sprintf (use snprintf or String)",
+      "type": "forbidden_patterns",
+      "paths": ["lib"],
+      "file_extensions": [".cpp", ".h"],
+      "exclude_dirs": [".git", ".pio", "build", "contrib"],
+      "patterns": ["\\bv?sprintf\\s*\\("]
+    },
+    {
+      "id": "no-ifndef-include-guards",
+      "name": "Use #pragma once, never #ifndef include guards",
+      "type": "forbidden_patterns",
+      "paths": ["lib"],
+      "file_extensions": [".h"],
+      "exclude_dirs": [".git", ".pio", "build", "contrib", "icons"],
+      "exclude_files": ["version_auto_gen.h"],
+      "patterns": ["^\\s*#\\s*ifndef\\s+[A-Za-z0-9_]+_H(PP)?_?\\s*$"]
+    },
+    {
+      "id": "include-guards-present",
+      "name": "Every header has #pragma once",
+      "type": "mandatory_include_guards",
+      "paths": ["lib"],
+      "file_extensions": [".h", ".hpp"],
+      "require_pragma_once": true,
+      "exclude_dirs": [".git", ".pio", "build", "contrib", "icons"],
+      "exclude_files": ["version_auto_gen.h"]
+    },
+    {
+      "id": "no-using-namespace-in-headers",
+      "name": "No 'using namespace' in headers",
+      "type": "forbidden_patterns",
+      "paths": ["lib"],
+      "file_extensions": [".h"],
+      "exclude_dirs": [".git", ".pio", "build", "contrib"],
+      "patterns": ["^\\s*using\\s+namespace\\b"]
+    },
+    {
+      "id": "no-blocking-io-under-lock",
+      "name": "No blocking I/O or sleeping while a mutex is held",
+      "type": "no_calls_between_patterns",
+      "paths": ["lib"],
+      "file_extensions": [".cpp", ".h"],
+      "exclude_dirs": [".git", ".pio", "build", "contrib"],
+      "lock_patterns": ["\\bxSemaphoreTake\\w*\\s*\\(", "\\.lock\\s*\\("],
+      "unlock_patterns": ["\\bxSemaphoreGive\\w*\\s*\\(", "\\.unlock\\s*\\("],
+      "forbidden_calls": [
+        "\\bvTaskDelay\\s*\\(",
+        "(?<![.\\w:>])delay\\s*\\(",
+        "\\bf(open|read|write|close)\\s*\\(",
+        "\\bSerial\\s*\\.\\s*print"
+      ]
+    },
+    {
+      "id": "limit-raw-serial-prints",
+      "name": "Limit raw Serial.print* usage per file (use lilka::serial)",
+      "type": "max_pattern_occurrences_per_file",
+      "paths": ["lib"],
+      "file_extensions": [".cpp", ".h"],
+      "exclude_dirs": [".git", ".pio", "build", "contrib"],
+      "exclude_files": ["serial.cpp", "serial.h"],
+      "pattern": "\\bSerial\\s*\\.\\s*(print|println|printf|write)\\b",
+      "max_count": 3
+    },
+    {
+      "id": "function-complexity",
+      "name": "Function size and complexity limits",
+      "type": "function_metrics",
+      "paths": ["lib"],
+      "file_extensions": [".cpp"],
+      "exclude_dirs": [".git", ".pio", "build", "contrib"],
+      "max_lines": 100,
+      "max_branches": 25,
+      "max_indent_levels": 5,
+      "max_case_labels": 30
+    },
+    {
+      "id": "duplicate-code",
+      "name": "Cross-file duplicate code blocks",
+      "type": "duplicate_blocks",
+      "paths": ["lib"],
+      "file_extensions": [".cpp", ".h"],
+      "exclude_dirs": [".git", ".pio", "build", "contrib", "icons", "examples"],
+      "exclude_files": ["version_auto_gen.h", "default_splash.h", "colors565.h", "bmi260_config.h"],
+      "min_normalized_lines": 12,
+      "cross_file_only": true
+    },
+    {
+      "id": "macros-in-headers",
+      "name": "#define macros belong in headers, not .cpp files",
+      "type": "macros_in_headers_only",
+      "paths": ["lib"],
+      "file_extensions": [".cpp"],
+      "exclude_dirs": [".git", ".pio", "build", "contrib"],
+      "allowed_patterns": ["^_[A-Z_]+$"]
+    },
+    {
+      "id": "magic-numbers-core",
+      "name": "Named constants instead of magic numbers (core SDK; chip drivers in lilka_modules use register maps and are exempt)",
+      "type": "magic_numbers",
+      "paths": ["lib/lilka/src/lilka"],
+      "file_extensions": [".cpp"],
+      "exclude_dirs": [".git", ".pio", "build", "contrib", "icons"],
+      "ignore_const_tables": true,
+      "flag_array_declarators": true,
+      "allowed_array_sizes": [1, 2, 3, 4, 6, 8, 16],
+      "allowed_literals": [-1, 0, 1, 2, 3, 4, 5, 8, 10, 16, 100, 255, 256, 1000],
+      "flagged_literals": {
+        "240": "display size: use LILKA_DISPLAY_WIDTH / display.width()",
+        "280": "display size: use LILKA_DISPLAY_HEIGHT / display.height()"
+      },
+      "min_cross_file_value": 36,
+      "max_cross_file_occurrences": 4
+    }
+  ]
+}
